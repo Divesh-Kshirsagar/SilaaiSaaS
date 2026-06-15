@@ -12,13 +12,18 @@
 - [x] Create branch `agent/phase1-setup`
 - [x] Create this task file
 - [x] Commit AGENTS/ files first
-- [ ] Fix `apps/api/build.gradle.kts` (remove invalid starters, add Security/JWT/MapStruct)
-- [ ] Create `docker-compose.yml` (PostgreSQL 16)
-- [ ] Create `apps/api/src/main/resources/application.yml`
-- [ ] Create `apps/api/.env.example`
-- [ ] Create `apps/app/.env.example`
-- [ ] Scaffold Ionic React app in `apps/app/` (`ionic start`)
-- [ ] Install frontend deps: zustand, zod, @tanstack/react-query, axios, chart.js, react-chartjs-2
-- [ ] Verify backend compiles: `./gradlew compileJava`
-- [ ] Verify Docker DB starts: `docker compose up -d`
-- [ ] Commit all Phase 1 changes
+- [x] Fix `apps/api/build.gradle.kts` (remove invalid starters, add Security/JWT/MapStruct)
+- [x] Create `docker-compose.yml` (PostgreSQL 16)
+- [x] Create `apps/api/src/main/resources/application.yml`
+- [x] Create `apps/api/.env.example`
+- [x] Create `apps/app/.env.example`
+- [x] Scaffold Ionic React app in `apps/app/` (`ionic start`)
+- [x] Install frontend deps: zustand, zod, @tanstack/react-query, axios, chart.js, react-chartjs-2
+- [x] Verify backend compiles: `BUILD SUCCESSFUL` (all deps resolved)
+- [x] Verify Docker DB starts: `silaaisaas_db` healthy on port 5432
+- [x] Verify frontend builds: `252 modules transformed, built in 13.32s`
+- [x] Commit all Phase 1 changes (4 commits on `agent/phase1-setup`)
+
+## Phase 1 Complete ✅
+
+Branch `agent/phase1-setup` is ready for your review when you want to merge.
