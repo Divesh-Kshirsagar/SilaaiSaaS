@@ -128,7 +128,7 @@ AGENTS/walkthroughs/20260620_WALK_auth_module_01.md
 
 - **Language:** TypeScript (strict mode)
 - **UI library:** Ionic components only (no raw CSS from scratch for layout)
-- **State:** React Context + `useReducer` for auth/shop. React Query for server state.
+- **State:** **Zustand** for global state (auth, shop context). **React Query** for server/async state. **Zod** for runtime schema validation of API responses and form inputs.
 - **HTTP:** Axios, base URL from env variable `VITE_API_BASE_URL`
 - **File naming:** PascalCase for components (`OrderList.tsx`), camelCase for hooks (`useOrders.ts`), SCREAMING_SNAKE for constants (`ORDER_STATUS.ts`)
 - **Route structure:**
@@ -147,13 +147,37 @@ AGENTS/walkthroughs/20260620_WALK_auth_module_01.md
 
 ---
 
-## 5. Branch & Commit Rules (for humans)
+## 5. Branch & Commit Rules
+
+### 5.1 Agent Git Rules (MANDATORY — AI Agents MUST follow these)
+
+> [!CAUTION]
+> These rules are non-negotiable. Violating them can corrupt the repository history.
+
+1. **Never commit directly to `main`.** Always create and switch to a feature branch before making any changes.
+2. **Branch naming for agents:** `agent/<phase>-<scope>`
+   - Examples: `agent/phase1-setup`, `agent/phase2-entities`, `agent/phase3-backend-api`
+3. **Create the branch at the start of each phase.** If the branch already exists, check it out and continue from the last commit.
+4. **Commit after every logical unit of work** (e.g., one file added, one module complete). Do not batch all changes into a single commit at the end.
+5. **Commit message format:** `<type>(<scope>): <description>`
+   - Types: `feat`, `fix`, `chore`, `docs`, `refactor`, `test`
+   - Example: `feat(auth): add JWT authentication filter`
+6. **Never use `git push`.** All work stays **local only**. The remote repository is never touched by agents.
+7. **Never use `git merge` or `git rebase`.** Merging is exclusively the user's decision.
+8. **Always tell the user** when a phase is complete and a branch is ready to merge. Use this exact phrasing:
+   > "Phase X is complete. Branch `agent/phaseX-scope` is ready for your review. Merge when you're happy — remember local merge only, never push to remote."
+9. **Commit the `AGENTS/` files first** (plan updates, task updates) before committing source code changes.
+10. **Verify before committing:** Run `git status` and `git diff --stat` to confirm exactly what is being staged.
+
+### 5.2 Human Git Rules
 
 - Branch format: `feature/<scope>`, `fix/<scope>`, `chore/<scope>`
 - Commit message format: `<type>(<scope>): <short description>`
   - Types: `feat`, `fix`, `chore`, `docs`, `test`, `refactor`
   - Example: `feat(order): add confirm-order endpoint`
-- No direct commits to `main`; use PRs.
+- No direct commits to `main`.
+- You (the user) are the sole decision-maker for all merges to `main`.
+- All merges are local only — **never `git push` after merging**.
 
 ---
 
@@ -190,4 +214,10 @@ Store secrets in `.env.local` (never committed). A `.env.example` must be mainta
 
 ---
 
-*Last updated: 2026-06-15 by Antigravity AI Agent*
+*Last updated: 2026-06-15 (rev 2) by Antigravity AI Agent*
+
+### Changelog
+| Date | Change |
+|------|--------|
+| 2026-06-15 | Initial version. |
+| 2026-06-15 (rev 2) | State management updated from React Context+useReducer to **Zustand + Zod**. Local dev DB confirmed as **Docker container**. `ddl-auto=update` confirmed for MVP with TODO for production. Phase 6 (Pilot) deferred. |

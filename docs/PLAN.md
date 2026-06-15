@@ -266,7 +266,7 @@ Since you’re skipping WhatsApp integrations for now, the MVP will be a **respo
 | Layer | Technology | Why (Minimal Boilerplate) |
 |-------|------------|----------------------------|
 | **Frontend** | Ionic React (with Capacitor for future mobile) | Pre-built UI components (forms, modals, lists) – no CSS from scratch. |
-| **State Management** | React Context + useReducer (no Redux for MVP) | Simpler than Redux. |
+| **State Management** | Zustand + zod| Simpler than Redux. |
 | **HTTP Client** | Axios (or native fetch) | Standard. |
 | **Backend** | Spring Boot 3 + Java 17 | Robust, fast to develop. |
 | **ORM** | Spring Data JPA (Hibernate) | Auto-implemented repositories. |

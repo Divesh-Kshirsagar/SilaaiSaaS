@@ -1,0 +1,7 @@
+{
+  "name": "SilaaiSaaS",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "react-vite"
+}
