@@ -8,9 +8,10 @@ group = "com.SilaiSaaS"
 version = "0.0.1-SNAPSHOT"
 
 java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(21)
-	}
+	// Using sourceCompatibility instead of toolchain so Gradle uses the ambient JVM.
+	// The machine has Java 25 JRE. Targeting Java 21 source/bytecode level.
+	sourceCompatibility = JavaVersion.VERSION_21
+	targetCompatibility = JavaVersion.VERSION_21
 }
 
 repositories {
