@@ -1,2 +1,60 @@
-/* For information on how to create your own theme, please refer to:
-http://ionicframework.com/docs/theming/ */
+/** Silaai SaaS — Premium Dark Theme */
+:root {
+  --ion-color-primary: #7C5FFF;
+  --ion-color-primary-rgb: 124, 95, 255;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-shade: #6d54e0;
+  --ion-color-primary-tint: #896fff;
+
+  --ion-color-secondary: #00D4AA;
+  --ion-color-secondary-rgb: 0, 212, 170;
+  --ion-color-secondary-contrast: #000000;
+  --ion-color-secondary-shade: #00bb95;
+  --ion-color-secondary-tint: #1ad8b3;
+
+  --ion-color-tertiary: #5B8DEF;
+  --ion-color-tertiary-rgb: 91, 141, 239;
+  --ion-color-tertiary-contrast: #ffffff;
+  --ion-color-tertiary-shade: #507cd2;
+  --ion-color-tertiary-tint: #6b99f1;
+
+  --ion-color-success: #2DD36F;
+  --ion-color-success-rgb: 45, 211, 111;
+  --ion-color-success-contrast: #000000;
+  --ion-color-success-shade: #28ba62;
+  --ion-color-success-tint: #42d77d;
+
+  --ion-color-warning: #F59E0B;
+  --ion-color-warning-rgb: 245, 158, 11;
+  --ion-color-warning-contrast: #000000;
+  --ion-color-warning-shade: #d88b09;
+  --ion-color-warning-tint: #f6a823;
+
+  --ion-color-danger: #FF4961;
+  --ion-color-danger-rgb: 255, 73, 97;
+  --ion-color-danger-contrast: #ffffff;
+  --ion-color-danger-shade: #e04055;
+  --ion-color-danger-tint: #ff5b71;
+
+  --ion-color-medium: #92949C;
+  --ion-color-light: #F4F5F8;
+
+  /* App-wide dark background */
+  --ion-background-color: #0F0F1A;
+  --ion-background-color-rgb: 15, 15, 26;
+
+  --ion-text-color: #E8E8F0;
+  --ion-text-color-rgb: 232, 232, 240;
+
+  --ion-card-background: #1A1A2E;
+  --ion-item-background: #1A1A2E;
+  --ion-toolbar-background: #0F0F1A;
+  --ion-tab-bar-background: #0F0F1A;
+  --ion-tab-bar-border-color: #2A2A3E;
+
+  /* Accent glow */
+  --silaai-glow: 0 0 20px rgba(124, 95, 255, 0.3);
+  --silaai-card-border: 1px solid rgba(124, 95, 255, 0.15);
+  --silaai-surface: #1A1A2E;
+  --silaai-surface-2: #252540;
+}

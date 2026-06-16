@@ -1,0 +1,119 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+* { box-sizing: border-box; }
+
+ion-content {
+  --background: var(--ion-background-color);
+}
+
+/* Typography */
+body, ion-app {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+h1, h2, h3, h4 {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+/* Premium cards */
+.silaai-card {
+  background: var(--silaai-card-background, var(--ion-card-background));
+  border: var(--silaai-card-border);
+  border-radius: 16px;
+  box-shadow: var(--silaai-glow);
+  backdrop-filter: blur(10px);
+  margin: 12px 0;
+}
+
+/* Stat cards */
+.stat-card {
+  background: linear-gradient(135deg, var(--silaai-surface), var(--silaai-surface-2));
+  border-radius: 16px;
+  border: 1px solid rgba(124, 95, 255, 0.2);
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+}
+
+.stat-card .stat-value {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--ion-color-primary);
+  line-height: 1;
+}
+
+.stat-card .stat-label {
+  font-size: 0.8rem;
+  color: var(--ion-color-medium);
+  margin-top: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* Gradient button */
+.btn-gradient {
+  --background: linear-gradient(135deg, var(--ion-color-primary), var(--ion-color-tertiary));
+  --border-radius: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* Low stock banner */
+.low-stock-banner {
+  background: linear-gradient(90deg, rgba(255,73,97,0.15), rgba(245,158,11,0.1));
+  border-left: 3px solid var(--ion-color-danger);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin: 8px 16px;
+  font-size: 0.875rem;
+}
+
+/* Status badge */
+.status-badge {
+  border-radius: 6px;
+  padding: 3px 10px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Toolbar gradient header */
+ion-toolbar {
+  --background: linear-gradient(135deg, #0F0F1A 0%, #1A1A2E 100%);
+  --border-color: rgba(124, 95, 255, 0.2);
+}
+
+/* Wizard step indicators */
+.wizard-steps {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px;
+}
+.wizard-step-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--silaai-surface-2);
+  transition: all 0.3s ease;
+}
+.wizard-step-dot.active {
+  width: 24px;
+  border-radius: 4px;
+  background: var(--ion-color-primary);
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-in-up {
+  animation: fadeInUp 0.35s ease both;
+}
+
+ion-item {
+  --background: transparent;
+  --border-color: rgba(124, 95, 255, 0.1);
+}
