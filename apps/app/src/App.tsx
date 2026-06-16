@@ -1,55 +1,93 @@
-import React from 'react';
-import { BrowserRouter as Router, Switch, Route, Redirect } from 'react-router-dom';
-import { Content, Theme } from '@carbon/react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { Toaster } from 'sonner'
+import ProtectedRoute from '@/components/ProtectedRoute'
+import AppLayout from '@/components/AppLayout'
 
-/* Global Carbon Styles */
-import './index.scss';
+// Pages
+import LoginPage from '@/pages/LoginPage'
+import RegisterPage from '@/pages/RegisterPage'
+import DashboardPage from '@/pages/DashboardPage'
+import CustomersPage from '@/pages/CustomersPage'
+import CustomerDetailPage from '@/pages/CustomerDetailPage'
+import OrderListPage from '@/pages/OrderListPage'
+import NewOrderPage from '@/pages/NewOrderPage'
+import OrderDetailPage from '@/pages/OrderDetailPage'
+import TasksPage from '@/pages/TasksPage'
+import InventoryManagePage from '@/pages/InventoryManagePage'
+import CustomerPortalPage from '@/pages/CustomerPortalPage'
+import InvoicePage from '@/pages/InvoicePage'
+import MeasurementApprovalPage from '@/pages/MeasurementApprovalPage'
+import ReportsPage from '@/pages/ReportsPage'
+import SettingsPage from '@/pages/SettingsPage'
 
-import ProtectedRoute from './components/ProtectedRoute';
-import AppHeader from './components/AppHeader';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import DashboardPage from './pages/DashboardPage';
-import CustomersPage from './pages/CustomersPage';
-import CustomerDetailPage from './pages/CustomerDetailPage';
-import OrderListPage from './pages/OrderListPage';
-import NewOrderPage from './pages/NewOrderPage';
-import OrderDetailPage from './pages/OrderDetailPage';
-import InventoryManagePage from './pages/InventoryManagePage';
-import TasksPage from './pages/TasksPage';
-import CustomerPortalPage from './pages/CustomerPortalPage';
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: { staleTime: 30_000, retry: 1 },
+  },
+})
 
-const App: React.FC = () => {
+export default function App() {
   return (
-    <Router>
-      <Theme theme="white">
-        <AppHeader />
-        {/* Carbon requires main content to be wrapped in <Content> to push below the fixed header */}
-        <Content>
-          <Switch>
-            {/* Public Routes */}
-            <Route exact path="/login" component={LoginPage} />
-            <Route exact path="/register" component={RegisterPage} />
-            <Route exact path="/track/:orderNumber" component={CustomerPortalPage} />
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <Routes>
+          {/* Public routes */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/portal/:orderNumber" element={<CustomerPortalPage />} />
 
-            {/* Protected Routes */}
-            <ProtectedRoute exact path="/dashboard" component={DashboardPage} />
-            <ProtectedRoute exact path="/customers" component={CustomersPage} />
-            <ProtectedRoute exact path="/customers/:id" component={CustomerDetailPage} />
-            <ProtectedRoute exact path="/orders" component={OrderListPage} />
-            <ProtectedRoute exact path="/orders/new" component={NewOrderPage} />
-            <ProtectedRoute exact path="/orders/:id" component={OrderDetailPage} />
-            <ProtectedRoute exact path="/inventory" component={InventoryManagePage} />
-            <ProtectedRoute exact path="/tasks" component={TasksPage} />
+          {/* Protected routes with sidebar layout */}
+          <Route element={<ProtectedRoute />}>
+            <Route element={<AppLayout />}>
+              <Route index element={<Navigate to="/dashboard" replace />} />
+              <Route path="/dashboard" element={<DashboardPage />} />
 
-            <Route exact path="/">
-              <Redirect to="/dashboard" />
+              {/* Orders — OWNER, MANAGER, ASSISTANT */}
+              <Route element={<ProtectedRoute allowedRoles={['OWNER', 'MANAGER', 'ASSISTANT']} />}>
+                <Route path="/orders" element={<OrderListPage />} />
+                <Route path="/orders/new" element={<NewOrderPage />} />
+                <Route path="/orders/:id" element={<OrderDetailPage />} />
+              </Route>
+
+              {/* Customers */}
+              <Route element={<ProtectedRoute allowedRoles={['OWNER', 'MANAGER', 'ASSISTANT']} />}>
+                <Route path="/customers" element={<CustomersPage />} />
+                <Route path="/customers/:id" element={<CustomerDetailPage />} />
+              </Route>
+
+              {/* Tasks — all roles */}
+              <Route path="/tasks" element={<TasksPage />} />
+
+              {/* Inventory — OWNER, MANAGER */}
+              <Route element={<ProtectedRoute allowedRoles={['OWNER', 'MANAGER']} />}>
+                <Route path="/inventory" element={<InventoryManagePage />} />
+              </Route>
+
+              {/* Billing — OWNER, MANAGER */}
+              <Route element={<ProtectedRoute allowedRoles={['OWNER', 'MANAGER']} />}>
+                <Route path="/billing/orders/:orderId" element={<InvoicePage />} />
+              </Route>
+
+              {/* Measurement Approvals — OWNER, MANAGER */}
+              <Route element={<ProtectedRoute allowedRoles={['OWNER', 'MANAGER']} />}>
+                <Route path="/measurements/pending" element={<MeasurementApprovalPage />} />
+              </Route>
+
+              {/* Reports — OWNER, MANAGER */}
+              <Route element={<ProtectedRoute allowedRoles={['OWNER', 'MANAGER']} />}>
+                <Route path="/reports" element={<ReportsPage />} />
+              </Route>
+
+              {/* Settings — OWNER only */}
+              <Route element={<ProtectedRoute allowedRoles={['OWNER']} />}>
+                <Route path="/settings" element={<SettingsPage />} />
+              </Route>
             </Route>
-          </Switch>
-        </Content>
-      </Theme>
-    </Router>
-  );
-};
-
-export default App;
+          </Route>
+        </Routes>
+      </BrowserRouter>
+      <Toaster richColors position="top-right" />
+    </QueryClientProvider>
+  )
+}

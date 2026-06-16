@@ -1,33 +1,65 @@
-import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import type { UserRole } from '../constants/enums';
+import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 
-interface AuthUser {
-  userId: number;
-  name: string;
-  role: UserRole;
-}
+export type UserRole = 'OWNER' | 'MANAGER' | 'TAILOR' | 'ASSISTANT'
 
 interface AuthState {
-  token: string | null;
-  user: AuthUser | null;
-  login: (token: string, user: AuthUser) => void;
-  logout: () => void;
-  isAuthenticated: () => boolean;
+  token: string | null
+  userId: number | null
+  name: string | null
+  role: UserRole | null
+  shopId: number | null
+  orgId: number | null
+  shopName: string | null
+  isAuthenticated: boolean
+  login: (data: {
+    token: string
+    userId: number
+    name: string
+    role: string
+    shopId: number
+    orgId: number
+    shopName: string
+  }) => void
+  logout: () => void
 }
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       token: null,
-      user: null,
-      login: (token, user) => set({ token, user }),
-      logout: () => set({ token: null, user: null }),
-      isAuthenticated: () => get().token !== null,
+      userId: null,
+      name: null,
+      role: null,
+      shopId: null,
+      orgId: null,
+      shopName: null,
+      isAuthenticated: false,
+
+      login: (data) =>
+        set({
+          token: data.token,
+          userId: data.userId,
+          name: data.name,
+          role: data.role as UserRole,
+          shopId: data.shopId,
+          orgId: data.orgId,
+          shopName: data.shopName,
+          isAuthenticated: true,
+        }),
+
+      logout: () =>
+        set({
+          token: null,
+          userId: null,
+          name: null,
+          role: null,
+          shopId: null,
+          orgId: null,
+          shopName: null,
+          isAuthenticated: false,
+        }),
     }),
-    {
-      name: 'silaai-auth',
-      storage: createJSONStorage(() => localStorage),
-    },
-  ),
-);
+    { name: 'silaai-auth' }
+  )
+)

@@ -1,219 +1,165 @@
-import React, { useState } from 'react';
+import { useState } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { Plus, Package, AlertTriangle } from 'lucide-react'
+import { toast } from 'sonner'
+import api from '@/lib/api'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import {
-  Tabs,
-  TabList,
-  Tab,
-  TabPanels,
-  TabPanel,
-  Button,
-  Modal,
-  TextInput,
-  Stack,
-  InlineLoading,
-  DataTable,
-  TableContainer,
   Table,
-  TableHead,
-  TableRow,
-  TableHeader,
   TableBody,
   TableCell,
-  Tag
-} from '@carbon/react';
-import { Add } from '@carbon/icons-react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '../lib/api';
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Badge } from '@/components/ui/badge'
 
-const InventoryManagePage: React.FC = () => {
-  const queryClient = useQueryClient();
+export default function InventoryManagePage() {
+  const [isAddOpen, setIsAddOpen] = useState(false)
+  const [form, setForm] = useState({ name: '', category: 'FABRIC', unitType: 'METRES', quantityAvailable: 0, reorderLevel: 0, unitCost: 0 })
+  const queryClient = useQueryClient()
 
-  // --- Fabrics State ---
-  const { data: fabrics, isLoading: fabricsLoading } = useQuery({
-    queryKey: ['fabrics'],
-    queryFn: async () => (await api.get('/fabrics')).data,
-  });
+  const { data: items, isLoading } = useQuery({
+    queryKey: ['inventory'],
+    queryFn: () => api.get('/inventory').then((res) => res.data),
+  })
 
-  const [showFabricModal, setShowFabricModal] = useState(false);
-  const [fName, setFName] = useState('');
-  const [fQty, setFQty] = useState<number>(0);
-  const [fReorder, setFReorder] = useState<number>(50);
+  const addMutation = useMutation({
+    mutationFn: (data: typeof form) => api.post('/inventory', data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['inventory'] })
+      setIsAddOpen(false)
+      toast.success('Item added to inventory')
+    }
+  })
 
-  const [stockModalFabricId, setStockModalFabricId] = useState<number | null>(null);
-  const [stockChange, setStockChange] = useState<number>(0);
-
-  const createFabric = useMutation({
-    mutationFn: async (data: any) => await api.post('/fabrics', data),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['fabrics'] }); setShowFabricModal(false); }
-  });
-
-  const addStock = useMutation({
-    mutationFn: async ({ id, qty }: { id: number, qty: number }) =>
-      await api.put(`/fabrics/${id}/stock`, { quantityChange: qty, reason: 'RESTOCK' }),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['fabrics'] }); setStockModalFabricId(null); }
-  });
-
-  // --- Garments State ---
-  const { data: garments, isLoading: garmentsLoading } = useQuery({
-    queryKey: ['garments'],
-    queryFn: async () => (await api.get('/garments')).data,
-  });
-
-  const [showGarmentModal, setShowGarmentModal] = useState(false);
-  const [gName, setGName] = useState('');
-  const [gPrice, setGPrice] = useState<number>(0);
-  const [gCons, setGCons] = useState<number>(1.5);
-
-  const createGarment = useMutation({
-    mutationFn: async (data: any) => await api.post('/garments', data),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['garments'] }); setShowGarmentModal(false); }
-  });
-
-  // --- Tables Setup ---
-  const fabricHeaders = [
-    { key: 'name', header: 'Fabric Name' },
-    { key: 'stock', header: 'Available Stock (m)' },
-    { key: 'reorder', header: 'Reorder Level' },
-    { key: 'status', header: 'Status' },
-    { key: 'actions', header: '' }
-  ];
-
-  const fabricRows = fabrics?.map((f: any) => ({
-    id: f.id.toString(),
-    name: f.name,
-    stock: f.quantityAvailable,
-    reorder: f.reorderLevel,
-    status: f.lowStock ? 'Low Stock' : 'OK'
-  })) ?? [];
-
-  const garmentHeaders = [
-    { key: 'name', header: 'Garment Name' },
-    { key: 'price', header: 'Base Price (₹)' },
-    { key: 'fabric', header: 'Default Fabric Needed (m)' }
-  ];
-
-  const garmentRows = garments?.map((g: any) => ({
-    id: g.id.toString(),
-    name: g.name,
-    price: g.basePrice,
-    fabric: g.defaultFabricConsumptionMeters
-  })) ?? [];
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    addMutation.mutate(form)
+  }
 
   return (
-    <div style={{ padding: '2rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h2>Manage Inventory</h2>
+    <div className="p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Inventory Management</h1>
+        <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+          <DialogTrigger asChild>
+            <Button><Plus size={16} className="mr-2" /> Add Item</Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add Inventory Item</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label>Item Name</Label>
+                <Input value={form.name} onChange={e => setForm({...form, name: e.target.value})} required />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Category</Label>
+                  <Select value={form.category} onValueChange={v => setForm({...form, category: v})}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="FABRIC">Fabric</SelectItem>
+                      <SelectItem value="LINING">Lining</SelectItem>
+                      <SelectItem value="BUTTON">Button</SelectItem>
+                      <SelectItem value="THREAD">Thread</SelectItem>
+                      <SelectItem value="ZIPPER">Zipper</SelectItem>
+                      <SelectItem value="ACCESSORY">Accessory</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Unit Type</Label>
+                  <Select value={form.unitType} onValueChange={v => setForm({...form, unitType: v})}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="METRES">Metres</SelectItem>
+                      <SelectItem value="PIECES">Pieces</SelectItem>
+                      <SelectItem value="ROLLS">Rolls</SelectItem>
+                      <SelectItem value="SPOOLS">Spools</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label>Initial Qty</Label>
+                  <Input type="number" step="0.1" value={form.quantityAvailable} onChange={e => setForm({...form, quantityAvailable: parseFloat(e.target.value)})} required />
+                </div>
+                <div className="space-y-2">
+                  <Label>Reorder Level</Label>
+                  <Input type="number" step="0.1" value={form.reorderLevel} onChange={e => setForm({...form, reorderLevel: parseFloat(e.target.value)})} required />
+                </div>
+                <div className="space-y-2">
+                  <Label>Unit Cost (₹)</Label>
+                  <Input type="number" step="0.1" value={form.unitCost} onChange={e => setForm({...form, unitCost: parseFloat(e.target.value)})} required />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setIsAddOpen(false)}>Cancel</Button>
+                <Button type="submit" disabled={addMutation.isPending}>Save Item</Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
 
-      <Tabs>
-        <TabList aria-label="Inventory categories">
-          <Tab>Fabrics</Tab>
-          <Tab>Garments</Tab>
-        </TabList>
-        <TabPanels>
-          {/* Fabrics Panel */}
-          <TabPanel>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
-              <Button renderIcon={Add} onClick={() => setShowFabricModal(true)} size="sm">New Fabric</Button>
-            </div>
-            {fabricsLoading ? <InlineLoading /> : (
-              <DataTable rows={fabricRows} headers={fabricHeaders}>
-                {({ rows, headers, getTableProps, getHeaderProps, getRowProps }: any) => (
-                  <TableContainer>
-                    <Table {...getTableProps()}>
-                      <TableHead>
-                        <TableRow>
-                          {headers.map((header: any) => (
-                            <TableHeader {...getHeaderProps({ header })}>{header.header}</TableHeader>
-                          ))}
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {rows.map((row: any) => (
-                          <TableRow {...getRowProps({ row })}>
-                            {row.cells.map((cell: any) => {
-                              if (cell.info.header === 'status') {
-                                return <TableCell key={cell.id}><Tag type={cell.value === 'OK' ? 'green' : 'red'}>{cell.value}</Tag></TableCell>;
-                              }
-                              if (cell.info.header === 'actions') {
-                                return (
-                                  <TableCell key={cell.id}>
-                                    <Button kind="ghost" size="sm" onClick={() => setStockModalFabricId(Number(row.id))}>Add Stock</Button>
-                                  </TableCell>
-                                );
-                              }
-                              return <TableCell key={cell.id}>{cell.value}</TableCell>;
-                            })}
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                )}
-              </DataTable>
+      <div className="rounded-md border bg-card">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Item</TableHead>
+              <TableHead>Category</TableHead>
+              <TableHead className="text-right">Stock</TableHead>
+              <TableHead className="text-right">Cost</TableHead>
+              <TableHead></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
+              <TableRow><TableCell colSpan={5} className="text-center py-8">Loading...</TableCell></TableRow>
+            ) : items?.length === 0 ? (
+              <TableRow><TableCell colSpan={5} className="text-center py-8 text-muted-foreground">No items in inventory</TableCell></TableRow>
+            ) : (
+              items?.map((item: any) => (
+                <TableRow key={item.id}>
+                  <TableCell>
+                    <div className="font-medium flex items-center gap-2">
+                      <Package size={16} className="text-muted-foreground" />
+                      {item.name}
+                    </div>
+                  </TableCell>
+                  <TableCell><Badge variant="outline">{item.category}</Badge></TableCell>
+                  <TableCell className="text-right font-medium">
+                    <span className={item.lowStock ? "text-red-600" : ""}>
+                      {item.quantityAvailable} {item.unitType.toLowerCase()}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-right">₹{item.unitCost}</TableCell>
+                  <TableCell className="text-right">
+                    {item.lowStock && (
+                      <Badge variant="destructive" className="ml-2"><AlertTriangle size={12} className="mr-1" /> Low Stock</Badge>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))
             )}
-          </TabPanel>
-
-          {/* Garments Panel */}
-          <TabPanel>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
-              <Button renderIcon={Add} onClick={() => setShowGarmentModal(true)} size="sm">New Garment</Button>
-            </div>
-            {garmentsLoading ? <InlineLoading /> : (
-              <DataTable rows={garmentRows} headers={garmentHeaders}>
-                {({ rows, headers, getTableProps, getHeaderProps, getRowProps }: any) => (
-                  <TableContainer>
-                    <Table {...getTableProps()}>
-                      <TableHead>
-                        <TableRow>
-                          {headers.map((header: any) => (
-                            <TableHeader {...getHeaderProps({ header })}>{header.header}</TableHeader>
-                          ))}
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {rows.map((row: any) => (
-                          <TableRow {...getRowProps({ row })}>
-                            {row.cells.map((cell: any) => (
-                              <TableCell key={cell.id}>{cell.value}</TableCell>
-                            ))}
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                )}
-              </DataTable>
-            )}
-          </TabPanel>
-        </TabPanels>
-      </Tabs>
-
-      {/* Fabric Modal */}
-      <Modal open={showFabricModal} onRequestClose={() => setShowFabricModal(false)} onRequestSubmit={() => createFabric.mutate({ name: fName, quantityAvailable: fQty, reorderLevel: fReorder })} modalHeading="New Fabric" primaryButtonText="Save">
-        <Stack gap={5}>
-          <TextInput id="fName" labelText="Fabric Name" value={fName} onChange={e => setFName(e.target.value)} />
-          <TextInput id="fQty" type="number" labelText="Initial Quantity (m)" value={fQty} onChange={e => setFQty(Number(e.target.value))} />
-          <TextInput id="fReorder" type="number" labelText="Reorder Level (m)" value={fReorder} onChange={e => setFReorder(Number(e.target.value))} />
-        </Stack>
-      </Modal>
-
-      {/* Stock Modal */}
-      <Modal open={stockModalFabricId !== null} onRequestClose={() => setStockModalFabricId(null)} onRequestSubmit={() => addStock.mutate({ id: stockModalFabricId!, qty: stockChange })} modalHeading="Add Stock" primaryButtonText="Update">
-        <Stack gap={5}>
-          <TextInput id="stockChange" type="number" labelText="Quantity to Add (m)" value={stockChange} onChange={e => setStockChange(Number(e.target.value))} />
-        </Stack>
-      </Modal>
-
-      {/* Garment Modal */}
-      <Modal open={showGarmentModal} onRequestClose={() => setShowGarmentModal(false)} onRequestSubmit={() => createGarment.mutate({ name: gName, basePrice: gPrice, defaultFabricConsumptionMeters: gCons })} modalHeading="New Garment" primaryButtonText="Save">
-        <Stack gap={5}>
-          <TextInput id="gName" labelText="Garment Name" value={gName} onChange={e => setGName(e.target.value)} />
-          <TextInput id="gPrice" type="number" labelText="Base Price (₹)" value={gPrice} onChange={e => setGPrice(Number(e.target.value))} />
-          <TextInput id="gCons" type="number" labelText="Default Fabric Needed (m)" value={gCons} onChange={e => setGCons(Number(e.target.value))} />
-        </Stack>
-      </Modal>
+          </TableBody>
+        </Table>
+      </div>
     </div>
-  );
-};
-
-export default InventoryManagePage;
+  )
+}

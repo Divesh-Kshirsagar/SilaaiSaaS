@@ -1,132 +1,200 @@
-import React, { useState } from 'react';
+import { useState } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useNavigate } from 'react-router-dom'
+import { Plus, Search, MoreVertical } from 'lucide-react'
+import { toast } from 'sonner'
+import api from '@/lib/api'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import {
-  DataTable,
-  TableContainer,
   Table,
-  TableHead,
-  TableRow,
-  TableHeader,
   TableBody,
   TableCell,
-  TableToolbar,
-  TableToolbarContent,
-  TableToolbarSearch,
-  Button,
-  Modal,
-  TextInput,
-  Stack,
-  InlineLoading
-} from '@carbon/react';
-import { Add } from '@carbon/icons-react';
-import { useHistory } from 'react-router-dom';
-import { useCustomers, useCreateCustomer } from '../hooks/useCustomers';
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
+import { Skeleton } from '@/components/ui/skeleton'
 
-const CustomersPage: React.FC = () => {
-  const history = useHistory();
-  const { data: customers, isLoading } = useCustomers();
-  const createMutation = useCreateCustomer();
+interface Customer {
+  id: number
+  name: string
+  phone: string
+  email?: string
+  address?: string
+}
 
-  const [showModal, setShowModal] = useState(false);
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
+export default function CustomersPage() {
+  const [search, setSearch] = useState('')
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [formData, setFormData] = useState({ name: '', phone: '', email: '', address: '' })
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
 
-  const headers = [
-    { key: 'name', header: 'Customer Name' },
-    { key: 'phone', header: 'Phone Number' }
-  ];
+  const { data: customers, isLoading } = useQuery<Customer[]>({
+    queryKey: ['customers'],
+    queryFn: () => api.get('/customers').then((res) => res.data),
+  })
 
-  const rows = customers?.map(c => ({ id: c.id.toString(), name: c.name, phone: c.phone })) ?? [];
+  const createMutation = useMutation({
+    mutationFn: (newCustomer: typeof formData) => api.post('/customers', newCustomer),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['customers'] })
+      setIsDialogOpen(false)
+      setFormData({ name: '', phone: '', email: '', address: '' })
+      toast.success('Customer created successfully')
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || 'Failed to create customer')
+    },
+  })
 
-  const handleSave = async () => {
-    if (!name || !phone) return;
-    await createMutation.mutateAsync({ name, phone });
-    setShowModal(false);
-    setName('');
-    setPhone('');
-  };
+  const filteredCustomers = customers?.filter(
+    (c) =>
+      c.name.toLowerCase().includes(search.toLowerCase()) ||
+      c.phone.includes(search)
+  )
+
+  const handleCreate = (e: React.FormEvent) => {
+    e.preventDefault()
+    createMutation.mutate(formData)
+  }
 
   return (
-    <div style={{ padding: '2rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h2>Customers</h2>
-        <Button renderIcon={Add} onClick={() => setShowModal(true)}>
-          New Customer
-        </Button>
+    <div className="p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Customers</h1>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus size={16} className="mr-2" />
+              Add Customer
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add New Customer</DialogTitle>
+              <DialogDescription>
+                Enter the details of the new customer.
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleCreate}>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Name</Label>
+                  <Input
+                    id="name"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone</Label>
+                  <Input
+                    id="phone"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email (Optional)</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="address">Address (Optional)</Label>
+                  <Input
+                    id="address"
+                    value={formData.address}
+                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={createMutation.isPending}>
+                  {createMutation.isPending ? 'Saving...' : 'Save Customer'}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
 
-      {isLoading ? <InlineLoading description="Loading customers..." /> : (
-        <DataTable rows={rows} headers={headers}>
-          {({ rows, headers, getTableProps, getHeaderProps, getRowProps, onInputChange }: any) => (
-            <TableContainer>
-              <TableToolbar>
-                <TableToolbarContent>
-                  <TableToolbarSearch onChange={onInputChange} persistent />
-                </TableToolbarContent>
-              </TableToolbar>
-              <Table {...getTableProps()}>
-                <TableHead>
-                  <TableRow>
-                    {headers.map((header: any) => (
-                      <TableHeader {...getHeaderProps({ header })}>
-                        {header.header}
-                      </TableHeader>
-                    ))}
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {rows.map((row: any) => (
-                    <TableRow
-                      {...getRowProps({ row })}
-                      onClick={() => history.push(`/customers/${row.id}`)}
-                      style={{ cursor: 'pointer' }}
-                    >
-                      {row.cells.map((cell: any) => (
-                        <TableCell key={cell.id}>{cell.value}</TableCell>
-                      ))}
-                    </TableRow>
-                  ))}
-                  {rows.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={headers.length} style={{ textAlign: 'center' }}>
-                        No customers found.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          )}
-        </DataTable>
-      )}
+      <div className="flex items-center max-w-sm relative">
+        <Search className="absolute left-3 text-muted-foreground" size={18} />
+        <Input
+          placeholder="Search by name or phone..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="pl-10"
+        />
+      </div>
 
-      <Modal
-        open={showModal}
-        onRequestClose={() => setShowModal(false)}
-        onRequestSubmit={handleSave}
-        primaryButtonText="Save Customer"
-        primaryButtonDisabled={createMutation.isPending || !name || !phone}
-        secondaryButtonText="Cancel"
-        modalHeading="New Customer"
-      >
-        <Stack gap={5}>
-          <TextInput
-            id="customer-name"
-            labelText="Full Name"
-            placeholder="e.g. Rahul Sharma"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-          <TextInput
-            id="customer-phone"
-            labelText="Phone Number"
-            placeholder="10-digit number"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-          />
-        </Stack>
-      </Modal>
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Phone</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Address</TableHead>
+              <TableHead className="w-[100px]"></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
+              Array.from({ length: 5 }).map((_, i) => (
+                <TableRow key={i}>
+                  <TableCell><Skeleton className="h-4 w-[150px]" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-[150px]" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-[200px]" /></TableCell>
+                  <TableCell></TableCell>
+                </TableRow>
+              ))
+            ) : filteredCustomers?.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center h-24 text-muted-foreground">
+                  No customers found.
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredCustomers?.map((customer) => (
+                <TableRow key={customer.id} className="cursor-pointer" onClick={() => navigate(`/customers/${customer.id}`)}>
+                  <TableCell className="font-medium">{customer.name}</TableCell>
+                  <TableCell>{customer.phone}</TableCell>
+                  <TableCell>{customer.email || '-'}</TableCell>
+                  <TableCell>{customer.address || '-'}</TableCell>
+                  <TableCell>
+                    <Button variant="ghost" size="icon">
+                      <MoreVertical size={16} />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
     </div>
-  );
-};
-
-export default CustomersPage;
+  )
+}

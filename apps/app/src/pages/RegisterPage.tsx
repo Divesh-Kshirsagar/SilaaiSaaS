@@ -1,83 +1,100 @@
-import React, { useState } from 'react';
-import { useHistory } from 'react-router-dom';
-import axios from 'axios';
-import {
-  Form,
-  Stack,
-  TextInput,
-  PasswordInput,
-  Button,
-  InlineNotification,
-  Link
-} from '@carbon/react';
-import { useAuthStore } from '../stores/authStore';
+import { useState } from 'react'
+import { useNavigate, Link } from 'react-router-dom'
+import { Scissors, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
+import { useAuthStore } from '@/stores/authStore'
+import api from '@/lib/api'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080/api/v1';
-
-const RegisterPage: React.FC = () => {
-  const history = useHistory();
-  const { login } = useAuthStore();
-  const [form, setForm] = useState({ shopName: '', ownerName: '', phone: '', password: '', confirm: '' });
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+export default function RegisterPage() {
+  const [form, setForm] = useState({ shopName: '', ownerName: '', phone: '', password: '', confirmPassword: '' })
+  const [loading, setLoading] = useState(false)
+  const { login } = useAuthStore()
+  const navigate = useNavigate()
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm((f) => ({ ...f, [e.target.id]: e.target.value }));
-  };
+    setForm(f => ({ ...f, [e.target.name]: e.target.value }))
+  }
 
   const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!form.shopName || !form.ownerName || !form.phone || !form.password) {
-      setError('All fields are required.'); return;
+    e.preventDefault()
+    if (form.password !== form.confirmPassword) {
+      toast.error('Passwords do not match')
+      return
     }
-    if (form.password !== form.confirm) { setError('Passwords do not match.'); return; }
-    setError('');
-    setLoading(true);
-
+    setLoading(true)
     try {
-      const res = await axios.post(`${API_BASE}/auth/register`, {
-        shopName: form.shopName, ownerName: form.ownerName,
-        phone: form.phone, password: form.password,
-      });
-      login(res.data.token, { userId: res.data.userId, name: res.data.name, role: res.data.role });
-      history.replace('/dashboard');
-    } catch (e: any) {
-      setError(e?.response?.data?.message ?? 'Registration failed. Try a different phone number.');
+      const res = await api.post('/auth/register', {
+        shopName: form.shopName,
+        ownerName: form.ownerName,
+        phone: form.phone,
+        password: form.password,
+      })
+      login(res.data)
+      toast.success('Shop registered successfully!')
+      navigate('/dashboard')
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Registration failed')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
-    <div style={{ maxWidth: '400px', margin: '4rem auto', padding: '0 1rem' }}>
-      <h1 style={{ marginBottom: '1rem' }}>Register Shop</h1>
-      <p style={{ marginBottom: '2rem' }}>
-        Already registered? <Link href="/login" onClick={(e) => { e.preventDefault(); history.push('/login'); }}>Sign in</Link>
-      </p>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 p-4">
+      <div className="w-full max-w-md">
+        <div className="flex flex-col items-center mb-8">
+          <div className="h-14 w-14 rounded-2xl bg-primary flex items-center justify-center mb-4 shadow-lg shadow-primary/20">
+            <Scissors size={28} className="text-white" />
+          </div>
+          <h1 className="text-3xl font-bold">SilaaiSaaS</h1>
+          <p className="text-muted-foreground text-sm mt-1">Register your tailoring shop</p>
+        </div>
 
-      {error && (
-        <InlineNotification
-          kind="error"
-          title="Registration Failed"
-          subtitle={error}
-          style={{ marginBottom: '2rem' }}
-        />
-      )}
-
-      <Form onSubmit={handleRegister}>
-        <Stack gap={5}>
-          <TextInput id="shopName" labelText="Shop Name" placeholder="e.g. Ramesh Tailors" value={form.shopName} onChange={handleChange} required />
-          <TextInput id="ownerName" labelText="Your Name (Owner)" placeholder="e.g. Ramesh Kumar" value={form.ownerName} onChange={handleChange} required />
-          <TextInput id="phone" labelText="Phone Number" placeholder="10-digit mobile number" value={form.phone} onChange={handleChange} required />
-          <PasswordInput id="password" labelText="Password" placeholder="Min. 8 characters" value={form.password} onChange={handleChange} required />
-          <PasswordInput id="confirm" labelText="Confirm Password" placeholder="Re-enter password" value={form.confirm} onChange={handleChange} required />
-          <Button type="submit" disabled={loading} style={{ marginTop: '1rem' }}>
-            {loading ? 'Creating Account...' : 'Create Shop & Sign In'}
-          </Button>
-        </Stack>
-      </Form>
+        <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-xl">Create your account</CardTitle>
+            <CardDescription>Set up your shop and start managing orders</CardDescription>
+          </CardHeader>
+          <form onSubmit={handleRegister}>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="shopName">Shop Name</Label>
+                <Input id="shopName" name="shopName" placeholder="Ramesh Tailors" value={form.shopName} onChange={handleChange} required />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="ownerName">Your Name</Label>
+                <Input id="ownerName" name="ownerName" placeholder="Ramesh Kumar" value={form.ownerName} onChange={handleChange} required />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="reg-phone">Phone Number</Label>
+                <Input id="reg-phone" name="phone" type="tel" placeholder="9999999999" value={form.phone} onChange={handleChange} required />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="reg-password">Password</Label>
+                <Input id="reg-password" name="password" type="password" placeholder="Min. 8 characters" value={form.password} onChange={handleChange} required />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <Input id="confirmPassword" name="confirmPassword" type="password" placeholder="Repeat password" value={form.confirmPassword} onChange={handleChange} required />
+              </div>
+            </CardContent>
+            <CardFooter className="flex flex-col gap-3 pt-2">
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading && <Loader2 size={16} className="animate-spin" />}
+                Create Shop
+              </Button>
+              <p className="text-sm text-muted-foreground text-center">
+                Already have an account?{' '}
+                <Link to="/login" className="text-primary font-medium hover:underline">Sign in</Link>
+              </p>
+            </CardFooter>
+          </form>
+        </Card>
+      </div>
     </div>
-  );
-};
-
-export default RegisterPage;
+  )
+}

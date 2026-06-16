@@ -1,22 +1,20 @@
-import React from 'react';
-import { Route, Redirect, type RouteProps } from 'react-router-dom';
-import { useAuthStore } from '../stores/authStore';
+import { Navigate, Outlet } from 'react-router-dom'
+import { useAuthStore, type UserRole } from '@/stores/authStore'
 
-interface ProtectedRouteProps extends RouteProps {
-  component: React.ComponentType<any>;
+interface ProtectedRouteProps {
+  allowedRoles?: UserRole[]
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ component: Component, ...rest }) => {
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated());
+export default function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
+  const { isAuthenticated, role } = useAuthStore()
 
-  return (
-    <Route
-      {...rest}
-      render={(props) =>
-        isAuthenticated ? <Component {...props} /> : <Redirect to="/login" />
-      }
-    />
-  );
-};
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />
+  }
 
-export default ProtectedRoute;
+  if (allowedRoles && role && !allowedRoles.includes(role)) {
+    return <Navigate to="/dashboard" replace />
+  }
+
+  return <Outlet />
+}
