@@ -18,7 +18,7 @@ const LoginPage: React.FC = () => {
 
   // Restore theme on mount
   React.useEffect(() => {
-    applyTheme(useUiStore.getState().theme);
+    applyTheme();
   }, []);
 
   const handleLogin = async () => {

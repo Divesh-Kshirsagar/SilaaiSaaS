@@ -67,7 +67,6 @@ const AppMenu: React.FC = () => {
 
       <IonFooter>
         <IonToolbar>
-          <ThemeToggle />
           <IonMenuToggle slot="end" autoHide={false}>
             <IonButton fill="clear" color="danger" id="logout-btn" onClick={logout}>
               <IonIcon slot="start" icon={logOutOutline} />

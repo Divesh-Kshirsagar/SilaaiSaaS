@@ -7,6 +7,7 @@
 - [x] **Sidebar Toggle:** Add an option/button to close or collapse the sidebar.
 - [x] **Design Overhaul:** The current UI is boring/outdated. Redesign to make it more intuitive and premium.
 - [x] **Light Theme:** Add support for a light theme (currently only dark theme exists).
+- [ ] **Dark Theme Fix:** The dark theme is currently broken and disabled. Investigate and fix the dark theme palette mapping later.
 - [x] **Visual Hierarchy:** Differentiate clearly between links and buttons so the UI is more intuitive.
 - [x] **Form Labels:** Move form labels outside the inputs (currently inside/floating) to make inputs easier to understand.
 - [x] **Task UX:** Add a dropdown option and a explicit "Save" button to the Tasks view for better UX instead of just inline buttons.

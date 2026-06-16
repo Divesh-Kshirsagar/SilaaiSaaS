@@ -40,7 +40,7 @@ setupIonicReact();
 const App: React.FC = () => {
   // Apply theme on load
   React.useEffect(() => {
-    applyTheme(useUiStore.getState().theme);
+    applyTheme();
   }, []);
 
   return (

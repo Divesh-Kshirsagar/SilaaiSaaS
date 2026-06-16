@@ -16,7 +16,7 @@ const CustomerPortalPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  React.useEffect(() => { applyTheme(useUiStore.getState().theme); }, []);
+  React.useEffect(() => { applyTheme(); }, []);
 
   const handleSearch = async () => {
     if (!orderNumber) return;

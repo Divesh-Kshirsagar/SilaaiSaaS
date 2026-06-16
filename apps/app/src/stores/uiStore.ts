@@ -1,32 +1,30 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 
 interface UiState {
   theme: 'dark' | 'light';
   toggleTheme: () => void;
+  sidebarOpen: boolean;
+  toggleSidebar: () => void;
 }
 
 export const useUiStore = create<UiState>()(
   persist(
-    (set, get) => ({
-      theme: 'dark',
-      toggleTheme: () => {
-        const next = get().theme === 'dark' ? 'light' : 'dark';
-        set({ theme: next });
-        applyTheme(next);
-      },
+    (set) => ({
+      theme: 'light', // Hardcoded to light for now
+      toggleTheme: () => {}, // Disabled
+      sidebarOpen: true,
+      toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
     }),
-    { name: 'silaai-ui' }
+    {
+      name: 'silaai-ui',
+      storage: createJSONStorage(() => localStorage),
+    }
   )
 );
 
-export const applyTheme = (theme: 'dark' | 'light') => {
-  const html = document.documentElement;
-  if (theme === 'light') {
-    html.classList.add('ion-palette-light');
-    html.classList.remove('ion-palette-dark');
-  } else {
-    html.classList.add('ion-palette-dark');
-    html.classList.remove('ion-palette-light');
-  }
+export const applyTheme = () => {
+  // Always apply light theme explicitly
+  document.documentElement.classList.add('ion-palette-light');
+  document.documentElement.classList.remove('ion-palette-dark');
 };

@@ -19,7 +19,7 @@ const RegisterPage: React.FC = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  React.useEffect(() => { applyTheme(useUiStore.getState().theme); }, []);
+  React.useEffect(() => { applyTheme(); }, []);
 
   const set = (field: string) => (e: any) => setForm((f) => ({ ...f, [field]: e.detail.value! }));
 
