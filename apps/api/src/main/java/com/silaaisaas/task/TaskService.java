@@ -6,6 +6,7 @@ import com.silaaisaas.common.enums.OrderStatus;
 import com.silaaisaas.common.enums.TaskStatus;
 import com.silaaisaas.common.enums.TaskType;
 import com.silaaisaas.common.exception.ResourceNotFoundException;
+import com.silaaisaas.common.notification.NotificationService;
 import com.silaaisaas.order.Order;
 import com.silaaisaas.order.OrderRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ public class TaskService {
     private final TaskRepository taskRepository;
     private final UserRepository userRepository;
     private final OrderRepository orderRepository;
+    private final NotificationService notificationService;
 
     public List<Task> listForCurrentUser() {
         String phone = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -35,6 +37,13 @@ public class TaskService {
             case OWNER, MANAGER -> taskRepository.findByOrderShopId(shopId);
             default -> taskRepository.findByAssignedToId(user.getId());
         };
+    }
+
+    public Task start(Long taskId) {
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new ResourceNotFoundException("Task not found: " + taskId));
+        task.setStatus(TaskStatus.IN_PROGRESS);
+        return taskRepository.save(task);
     }
 
     /**
@@ -66,10 +75,13 @@ public class TaskService {
             case FINISHING -> {
                 order.setStatus(OrderStatus.READY);
                 orderRepository.save(order);
-                // No more tasks — order is ready for pickup
+                // Notify customer that order is ready
+                String phone = order.getCustomer().getPhone();
+                if (phone != null) notificationService.sendDeliveryReady(order, phone);
             }
         }
 
+        notificationService.sendOrderStatusUpdate(order, order.getCustomer().getPhone());
         return task;
     }
 

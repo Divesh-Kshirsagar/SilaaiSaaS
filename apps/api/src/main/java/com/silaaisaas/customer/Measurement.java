@@ -1,5 +1,7 @@
 package com.silaaisaas.customer;
 
+import com.silaaisaas.auth.User;
+import com.silaaisaas.common.enums.MeasurementStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -24,6 +26,11 @@ public class Measurement {
     @Column(nullable = false)
     private String garmentType;
 
+    // Version number — increments each time a new version is proposed
+    @Column(nullable = false)
+    @Builder.Default
+    private Integer version = 1;
+
     // All measurements in centimetres
     private Double chest;
     private Double waist;
@@ -34,6 +41,18 @@ public class Measurement {
 
     @Column(columnDefinition = "TEXT")
     private String notes;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private MeasurementStatus status = MeasurementStatus.ACTIVE;
+
+    // Set when a MANAGER/OWNER approves a PENDING_APPROVAL measurement
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "approved_by_user_id")
+    private User approvedBy;
+
+    private LocalDateTime approvedAt;
 
     @Column(nullable = false)
     private LocalDateTime updatedAt;
