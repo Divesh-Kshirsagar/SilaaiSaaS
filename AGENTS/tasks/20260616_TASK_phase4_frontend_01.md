@@ -11,56 +11,60 @@
 ### Foundation
 - [x] Create branch `agent/phase4-frontend`
 - [x] Create this task file
-- [ ] `src/constants/enums.ts`
-- [ ] `src/lib/api.ts` (Axios instance + JWT interceptor)
-- [ ] `src/lib/queryClient.ts`
+- [x] `src/constants/enums.ts`
+- [x] `src/lib/api.ts` (Axios instance + JWT interceptor)
+- [x] `src/lib/queryClient.ts`
 
 ### State Management
-- [ ] `src/stores/authStore.ts` (Zustand + localStorage persist)
-- [ ] `src/stores/shopStore.ts`
+- [x] `src/stores/authStore.ts` (Zustand + localStorage persist)
+- [x] `src/stores/shopStore.ts`
 
 ### Zod Schemas
-- [ ] `src/schemas/auth.ts`
-- [ ] `src/schemas/customer.ts`
-- [ ] `src/schemas/order.ts`
-- [ ] `src/schemas/inventory.ts`
-- [ ] `src/schemas/task.ts`
-- [ ] `src/schemas/dashboard.ts`
+- [x] `src/schemas/auth.ts`
+- [x] `src/schemas/customer.ts`
+- [x] `src/schemas/order.ts`
+- [x] `src/schemas/inventory.ts`
+- [x] `src/schemas/task.ts`
+- [x] `src/schemas/dashboard.ts`
 
 ### React Query Hooks
-- [ ] `src/hooks/useAuth.ts`
-- [ ] `src/hooks/useCustomers.ts`
-- [ ] `src/hooks/useOrders.ts`
-- [ ] `src/hooks/useInventory.ts`
-- [ ] `src/hooks/useTasks.ts`
-- [ ] `src/hooks/useDashboard.ts`
+- [x] `src/hooks/useAuth.ts`
+- [x] `src/hooks/useCustomers.ts`
+- [x] `src/hooks/useOrders.ts`
+- [x] `src/hooks/useInventory.ts`
+- [x] `src/hooks/useTasks.ts`
+- [x] `src/hooks/useDashboard.ts`
 
 ### Theme & Global CSS
-- [ ] `src/theme/variables.css` (custom Ionic CSS variables — dark, brand colors)
-- [ ] `src/theme/global.css` (typography, utility classes)
+- [x] `src/theme/variables.css` (custom Ionic CSS variables — dark, brand colors)
+- [x] `src/theme/global.css` (typography, utility classes)
 
 ### Routing & Auth Guard
-- [ ] `src/components/ProtectedRoute.tsx`
-- [ ] `src/App.tsx` (replace default tabs scaffold with proper routing)
-- [ ] `src/main.tsx` (wrap with QueryClientProvider)
+- [x] `src/components/ProtectedRoute.tsx`
+- [x] `src/App.tsx` (replace default tabs scaffold with proper routing)
+- [x] `src/main.tsx` (wrap with QueryClientProvider)
 
 ### Pages
-- [ ] `src/pages/LoginPage.tsx`
-- [ ] `src/pages/DashboardPage.tsx`
-- [ ] `src/pages/CustomersPage.tsx`
-- [ ] `src/pages/CustomerDetailPage.tsx`
-- [ ] `src/pages/OrderListPage.tsx`
-- [ ] `src/pages/NewOrderPage.tsx` (5-step wizard)
-- [ ] `src/pages/OrderDetailPage.tsx`
-- [ ] `src/pages/InventoryPage.tsx`
-- [ ] `src/pages/TasksPage.tsx`
+- [x] `src/pages/LoginPage.tsx`
+- [x] `src/pages/DashboardPage.tsx`
+- [x] `src/pages/CustomersPage.tsx`
+- [x] `src/pages/CustomerDetailPage.tsx`
+- [x] `src/pages/OrderListPage.tsx`
+- [x] `src/pages/NewOrderPage.tsx` (5-step wizard)
+- [x] `src/pages/OrderDetailPage.tsx`
+- [x] `src/pages/InventoryPage.tsx`
+- [x] `src/pages/TasksPage.tsx`
 
 ### Reusable Components
-- [ ] `src/components/OrderStatusBadge.tsx`
-- [ ] `src/components/LowStockBanner.tsx`
-- [ ] `src/components/AppMenu.tsx` (side nav)
+- [x] `src/components/OrderStatusBadge.tsx`
+- [x] `src/components/LowStockBanner.tsx`
+- [x] `src/components/AppMenu.tsx` (side nav)
 
 ### Finalization
-- [ ] `src/.env.local` / `.env.example`
-- [ ] Verify: `npm run build` — zero errors
-- [ ] Commit all Phase 4 changes
+- [x] `src/.env.local` / `.env.example`
+- [x] Verify: `npm run build` — zero errors
+- [x] Commit all Phase 4 changes
+
+## Phase 4 Complete ✅
+
+Branch `agent/phase4-frontend` is ready for your review. Merge when you're happy — remember local merge only, never push to remote.
