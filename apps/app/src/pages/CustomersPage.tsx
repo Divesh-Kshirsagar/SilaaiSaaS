@@ -1,25 +1,41 @@
 import React, { useState } from 'react';
 import {
-  IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonMenuButton,
-  IonButtons, IonList, IonItem, IonLabel, IonFab, IonFabButton, IonIcon,
-  IonModal, IonButton, IonInput, IonSpinner, IonSearchbar,
-} from '@ionic/react';
-import { addOutline, callOutline, personOutline } from 'ionicons/icons';
+  DataTable,
+  TableContainer,
+  Table,
+  TableHead,
+  TableRow,
+  TableHeader,
+  TableBody,
+  TableCell,
+  TableToolbar,
+  TableToolbarContent,
+  TableToolbarSearch,
+  Button,
+  Modal,
+  TextInput,
+  Stack,
+  InlineLoading
+} from '@carbon/react';
+import { Add } from '@carbon/icons-react';
+import { useHistory } from 'react-router-dom';
 import { useCustomers, useCreateCustomer } from '../hooks/useCustomers';
 
 const CustomersPage: React.FC = () => {
+  const history = useHistory();
   const { data: customers, isLoading } = useCustomers();
   const createMutation = useCreateCustomer();
 
   const [showModal, setShowModal] = useState(false);
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
-  const [search, setSearch] = useState('');
 
-  const filteredCustomers = customers?.filter(c =>
-    c.name.toLowerCase().includes(search.toLowerCase()) ||
-    c.phone.includes(search)
-  ) ?? [];
+  const headers = [
+    { key: 'name', header: 'Customer Name' },
+    { key: 'phone', header: 'Phone Number' }
+  ];
+
+  const rows = customers?.map(c => ({ id: c.id.toString(), name: c.name, phone: c.phone })) ?? [];
 
   const handleSave = async () => {
     if (!name || !phone) return;
@@ -30,76 +46,86 @@ const CustomersPage: React.FC = () => {
   };
 
   return (
-    <IonPage id="customers-page">
-      <IonHeader>
-        <IonToolbar>
-          <IonButtons slot="start"><IonMenuButton /></IonButtons>
-          <IonTitle>Customers</IonTitle>
-        </IonToolbar>
-        <IonToolbar>
-          <IonSearchbar
-            value={search}
-            onIonInput={(e) => setSearch(e.detail.value!)}
-            placeholder="Search by name or phone"
-          />
-        </IonToolbar>
-      </IonHeader>
+    <div style={{ padding: '2rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+        <h2>Customers</h2>
+        <Button renderIcon={Add} onClick={() => setShowModal(true)}>
+          New Customer
+        </Button>
+      </div>
 
-      <IonContent>
-        <IonList>
-          {isLoading && <IonItem><IonSpinner name="dots" /></IonItem>}
-          {filteredCustomers.map((c) => (
-            <IonItem key={c.id} routerLink={`/customers/${c.id}`} detail>
-              <IonLabel>
-                <h2>{c.name}</h2>
-                <p>{c.phone}</p>
-              </IonLabel>
-            </IonItem>
-          ))}
-          {!isLoading && filteredCustomers.length === 0 && (
-            <IonItem><IonLabel className="ion-text-center" color="medium">No customers found</IonLabel></IonItem>
+      {isLoading ? <InlineLoading description="Loading customers..." /> : (
+        <DataTable rows={rows} headers={headers}>
+          {({ rows, headers, getTableProps, getHeaderProps, getRowProps, onInputChange }: any) => (
+            <TableContainer>
+              <TableToolbar>
+                <TableToolbarContent>
+                  <TableToolbarSearch onChange={onInputChange} persistent />
+                </TableToolbarContent>
+              </TableToolbar>
+              <Table {...getTableProps()}>
+                <TableHead>
+                  <TableRow>
+                    {headers.map((header: any) => (
+                      <TableHeader {...getHeaderProps({ header })}>
+                        {header.header}
+                      </TableHeader>
+                    ))}
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {rows.map((row: any) => (
+                    <TableRow
+                      {...getRowProps({ row })}
+                      onClick={() => history.push(`/customers/${row.id}`)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      {row.cells.map((cell: any) => (
+                        <TableCell key={cell.id}>{cell.value}</TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                  {rows.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={headers.length} style={{ textAlign: 'center' }}>
+                        No customers found.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
           )}
-        </IonList>
+        </DataTable>
+      )}
 
-        <IonFab vertical="bottom" horizontal="end" slot="fixed">
-          <IonFabButton id="add-customer-fab" onClick={() => setShowModal(true)}>
-            <IonIcon icon={addOutline} />
-          </IonFabButton>
-        </IonFab>
-
-        <IonModal isOpen={showModal} onDidDismiss={() => setShowModal(false)} breakpoints={[0, 0.75, 1]} initialBreakpoint={0.75}>
-          <IonHeader>
-            <IonToolbar>
-              <IonTitle>New Customer</IonTitle>
-              <IonButtons slot="end">
-                <IonButton onClick={() => setShowModal(false)}>Close</IonButton>
-              </IonButtons>
-            </IonToolbar>
-          </IonHeader>
-          <IonContent className="ion-padding">
-            <IonItem>
-              <IonIcon slot="start" icon={personOutline} />
-              <IonLabel position="stacked">Full Name</IonLabel>
-              <IonInput id="customer-name-input" value={name} onIonInput={(e) => setName(e.detail.value!)} placeholder="e.g. Rahul Sharma" />
-            </IonItem>
-            <IonItem>
-              <IonIcon slot="start" icon={callOutline} />
-              <IonLabel position="stacked">Phone Number</IonLabel>
-              <IonInput id="customer-phone-input" type="tel" value={phone} onIonInput={(e) => setPhone(e.detail.value!)} placeholder="10-digit number" />
-            </IonItem>
-            <IonButton
-              id="save-customer-btn"
-              expand="block"
-              className="ion-margin-top"
-              onClick={handleSave}
-              disabled={createMutation.isPending || !name || !phone}
-            >
-              {createMutation.isPending ? <IonSpinner name="crescent" /> : 'Save Customer'}
-            </IonButton>
-          </IonContent>
-        </IonModal>
-      </IonContent>
-    </IonPage>
+      <Modal
+        open={showModal}
+        onRequestClose={() => setShowModal(false)}
+        onRequestSubmit={handleSave}
+        primaryButtonText="Save Customer"
+        primaryButtonDisabled={createMutation.isPending || !name || !phone}
+        secondaryButtonText="Cancel"
+        modalHeading="New Customer"
+      >
+        <Stack gap={5}>
+          <TextInput
+            id="customer-name"
+            labelText="Full Name"
+            placeholder="e.g. Rahul Sharma"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+          <TextInput
+            id="customer-phone"
+            labelText="Phone Number"
+            placeholder="10-digit number"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+          />
+        </Stack>
+      </Modal>
+    </div>
   );
 };
 

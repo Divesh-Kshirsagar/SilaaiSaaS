@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import {
-  IonPage, IonContent, IonCard, IonCardContent, IonCardHeader,
-  IonCardTitle, IonItem, IonLabel, IonInput, IonButton, IonSpinner,
-  IonText, IonIcon
-} from '@ionic/react';
-import { searchOutline, checkmarkCircle, ellipseOutline } from 'ionicons/icons';
+  ProgressIndicator,
+  ProgressStep,
+  TextInput,
+  Button,
+  Tile,
+  InlineLoading,
+  Stack
+} from '@carbon/react';
+import { Search } from '@carbon/icons-react';
 import axios from 'axios';
-import { applyTheme, useUiStore } from '../stores/uiStore';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080/api/v1';
 
@@ -15,8 +18,6 @@ const CustomerPortalPage: React.FC = () => {
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-
-  React.useEffect(() => { applyTheme(); }, []);
 
   const handleSearch = async () => {
     if (!orderNumber) return;
@@ -33,81 +34,59 @@ const CustomerPortalPage: React.FC = () => {
     }
   };
 
-  const statusTimeline = ['DRAFT', 'CONFIRMED', 'CUTTING', 'STITCHING', 'QUALITY_CHECK', 'READY_FOR_DELIVERY', 'DELIVERED'];
+  const statusTimeline = ['DRAFT', 'CONFIRMED', 'CUTTING', 'STITCHING', 'QUALITY_CHECK', 'READY', 'DELIVERED'];
   const currentIndex = order ? statusTimeline.indexOf(order.status) : -1;
 
   return (
-    <IonPage id="customer-portal-page">
-      <IonContent className="ion-padding">
-        <div className="ion-text-center ion-padding-top">
-          <h1>Track Your Order</h1>
-          <p>Enter your tracking number below</p>
-        </div>
+    <div style={{ padding: '2rem', maxWidth: '600px', margin: '0 auto' }}>
+      <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+        <h1>Track Your Order</h1>
+        <p>Enter your tracking number below</p>
+      </div>
 
-        <IonCard>
-          <IonCardContent>
-            <IonItem lines="none">
-              <IonLabel position="stacked">Order Number (e.g. ORD-1)</IonLabel>
-              <IonInput
-                value={orderNumber}
-                onIonInput={e => setOrderNumber(e.detail.value!)}
-                placeholder="ORD-..."
-                onKeyDown={e => e.key === 'Enter' && handleSearch()}
+      <Tile style={{ marginBottom: '2rem' }}>
+        <Stack gap={5}>
+          <TextInput
+            id="order-search"
+            labelText="Order Number"
+            placeholder="e.g. ORD-1"
+            value={orderNumber}
+            onChange={e => setOrderNumber(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleSearch()}
+          />
+          <Button renderIcon={Search} onClick={handleSearch} disabled={loading || !orderNumber}>
+            {loading ? 'Tracking...' : 'Track Order'}
+          </Button>
+          {error && <p style={{ color: '#da1e28' }}>{error}</p>}
+        </Stack>
+      </Tile>
+
+      {loading && <InlineLoading description="Fetching order details..." />}
+
+      {order && (
+        <Tile>
+          <h2 style={{ marginBottom: '1rem' }}>Order {order.orderNumber}</h2>
+          <Stack gap={3} style={{ marginBottom: '2rem' }}>
+            <p><strong>Customer Name:</strong> {order.customerName}</p>
+            <p><strong>Expected Delivery:</strong> {order.deliveryDate}</p>
+            <p><strong>Payment Status:</strong> Total: ₹{order.totalAmount} | Paid: ₹{order.advancePaid}</p>
+          </Stack>
+
+          <h3>Status Timeline</h3>
+          <ProgressIndicator vertical currentIndex={currentIndex} style={{ marginTop: '1rem' }}>
+            {statusTimeline.map((step, idx) => (
+              <ProgressStep
+                key={step}
+                label={step.replace(/_/g, ' ')}
+                complete={idx < currentIndex}
+                current={idx === currentIndex}
+                disabled={idx > currentIndex}
               />
-            </IonItem>
-            <IonButton expand="block" onClick={handleSearch} disabled={loading || !orderNumber} className="ion-margin-top">
-              {loading ? <IonSpinner name="dots" /> : <><IonIcon icon={searchOutline} slot="start" /> Track Order</>}
-            </IonButton>
-            {error && <IonText color="danger" className="ion-text-center"><p>{error}</p></IonText>}
-          </IonCardContent>
-        </IonCard>
-
-        {order && (
-          <IonCard>
-            <IonCardHeader>
-              <IonCardTitle>Order {order.orderNumber}</IonCardTitle>
-            </IonCardHeader>
-            <IonCardContent>
-              <IonItem>
-                <IonLabel>
-                  <h3>Customer Name</h3>
-                  <p>{order.customerName}</p>
-                </IonLabel>
-              </IonItem>
-              <IonItem>
-                <IonLabel>
-                  <h3>Expected Delivery</h3>
-                  <p>{order.deliveryDate}</p>
-                </IonLabel>
-              </IonItem>
-              <IonItem>
-                <IonLabel>
-                  <h3>Payment Status</h3>
-                  <p>Total: ₹{order.totalAmount} | Paid: ₹{order.advancePaid}</p>
-                </IonLabel>
-              </IonItem>
-
-              <div className="ion-margin-top">
-                <h3>Status Timeline</h3>
-                {statusTimeline.map((step, idx) => {
-                  const isPastOrCurrent = idx <= currentIndex;
-                  return (
-                    <IonItem key={step} lines="none">
-                      <IonIcon
-                        slot="start"
-                        icon={isPastOrCurrent ? checkmarkCircle : ellipseOutline}
-                        color={isPastOrCurrent ? 'success' : 'medium'}
-                      />
-                      <IonLabel color={isPastOrCurrent ? 'dark' : 'medium'}>{step.replace(/_/g, ' ')}</IonLabel>
-                    </IonItem>
-                  );
-                })}
-              </div>
-            </IonCardContent>
-          </IonCard>
-        )}
-      </IonContent>
-    </IonPage>
+            ))}
+          </ProgressIndicator>
+        </Tile>
+      )}
+    </div>
   );
 };
 

@@ -1,77 +1,116 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
-  IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonMenuButton,
-  IonButtons, IonList, IonItem, IonLabel, IonFab, IonFabButton, IonIcon,
-  IonSpinner, IonSearchbar, IonSelect, IonSelectOption
-} from '@ionic/react';
-import { addOutline } from 'ionicons/icons';
+  DataTable,
+  TableContainer,
+  Table,
+  TableHead,
+  TableRow,
+  TableHeader,
+  TableBody,
+  TableCell,
+  TableToolbar,
+  TableToolbarContent,
+  TableToolbarSearch,
+  Button,
+  InlineLoading,
+  Tag
+} from '@carbon/react';
+import { Add } from '@carbon/icons-react';
+import { useHistory } from 'react-router-dom';
 import { useOrders } from '../hooks/useOrders';
-import { ORDER_STATUS } from '../constants/enums';
-import OrderStatusBadge from '../components/OrderStatusBadge';
 
 const OrderListPage: React.FC = () => {
+  const history = useHistory();
   const { data: orders, isLoading } = useOrders();
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('ALL');
 
-  const filteredOrders = orders?.filter(o => {
-    const matchesSearch = o.orderNumber.toLowerCase().includes(search.toLowerCase()) ||
-                          o.customer.name.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = statusFilter === 'ALL' || o.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  }) ?? [];
+  const headers = [
+    { key: 'orderNumber', header: 'Order Number' },
+    { key: 'customer', header: 'Customer' },
+    { key: 'deliveryDate', header: 'Delivery Date' },
+    { key: 'status', header: 'Status' }
+  ];
+
+  const rows = orders?.map(o => ({
+    id: o.id.toString(),
+    orderNumber: o.orderNumber,
+    customer: o.customer.name,
+    deliveryDate: o.deliveryDate,
+    status: o.status
+  })) ?? [];
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'DRAFT': return 'gray';
+      case 'CONFIRMED': return 'blue';
+      case 'CUTTING':
+      case 'STITCHING': return 'warm-gray';
+      case 'QUALITY_CHECK': return 'purple';
+      case 'READY':
+      case 'DELIVERED': return 'green';
+      default: return 'gray';
+    }
+  };
 
   return (
-    <IonPage id="order-list-page">
-      <IonHeader>
-        <IonToolbar>
-          <IonButtons slot="start"><IonMenuButton /></IonButtons>
-          <IonTitle>Orders</IonTitle>
-        </IonToolbar>
-        <IonToolbar>
-          <IonSearchbar
-            value={search}
-            onIonInput={e => setSearch(e.detail.value!)}
-            placeholder="Search ORD- or customer..."
-          />
-        </IonToolbar>
-        <IonToolbar>
-          <IonItem lines="none">
-            <IonLabel>Filter Status:</IonLabel>
-            <IonSelect value={statusFilter} onIonChange={e => setStatusFilter(e.detail.value)}>
-              <IonSelectOption value="ALL">All Statuses</IonSelectOption>
-              {Object.values(ORDER_STATUS).map(st => (
-                <IonSelectOption key={st} value={st}>{st}</IonSelectOption>
-              ))}
-            </IonSelect>
-          </IonItem>
-        </IonToolbar>
-      </IonHeader>
+    <div style={{ padding: '2rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+        <h2>Orders</h2>
+        <Button renderIcon={Add} onClick={() => history.push('/orders/new')}>
+          New Order
+        </Button>
+      </div>
 
-      <IonContent>
-        <IonList>
-          {isLoading && <IonItem><IonSpinner name="dots" /></IonItem>}
-          {filteredOrders.map(o => (
-            <IonItem key={o.id} routerLink={`/orders/${o.id}`} detail>
-              <IonLabel>
-                <h2><b>{o.orderNumber}</b> — {o.customer.name}</h2>
-                <p>Delivery: {o.deliveryDate}</p>
-              </IonLabel>
-              <OrderStatusBadge status={o.status} />
-            </IonItem>
-          ))}
-          {!isLoading && filteredOrders.length === 0 && (
-            <IonItem><IonLabel className="ion-text-center" color="medium">No orders found</IonLabel></IonItem>
+      {isLoading ? <InlineLoading description="Loading orders..." /> : (
+        <DataTable rows={rows} headers={headers}>
+          {({ rows, headers, getTableProps, getHeaderProps, getRowProps, onInputChange }: any) => (
+            <TableContainer>
+              <TableToolbar>
+                <TableToolbarContent>
+                  <TableToolbarSearch onChange={onInputChange} persistent />
+                </TableToolbarContent>
+              </TableToolbar>
+              <Table {...getTableProps()}>
+                <TableHead>
+                  <TableRow>
+                    {headers.map((header: any) => (
+                      <TableHeader {...getHeaderProps({ header })}>
+                        {header.header}
+                      </TableHeader>
+                    ))}
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {rows.map((row: any) => (
+                    <TableRow
+                      {...getRowProps({ row })}
+                      onClick={() => history.push(`/orders/${row.id}`)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      {row.cells.map((cell: any) => (
+                        <TableCell key={cell.id}>
+                          {cell.info.header === 'status' ? (
+                            <Tag type={getStatusColor(cell.value)}>{cell.value}</Tag>
+                          ) : (
+                            cell.value
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                  {rows.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={headers.length} style={{ textAlign: 'center' }}>
+                        No orders found.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
           )}
-        </IonList>
-
-        <IonFab vertical="bottom" horizontal="end" slot="fixed">
-          <IonFabButton id="new-order-fab" routerLink="/orders/new">
-            <IonIcon icon={addOutline} />
-          </IonFabButton>
-        </IonFab>
-      </IonContent>
-    </IonPage>
+        </DataTable>
+      )}
+    </div>
   );
 };
 

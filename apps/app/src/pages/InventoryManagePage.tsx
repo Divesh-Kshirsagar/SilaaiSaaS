@@ -1,16 +1,31 @@
 import React, { useState } from 'react';
 import {
-  IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonMenuButton,
-  IonButtons, IonList, IonItem, IonLabel, IonFab, IonFabButton, IonIcon,
-  IonSpinner, IonModal, IonButton, IonInput, IonBadge, IonSegment, IonSegmentButton
-} from '@ionic/react';
-import { addOutline, cubeOutline } from 'ionicons/icons';
+  Tabs,
+  TabList,
+  Tab,
+  TabPanels,
+  TabPanel,
+  Button,
+  Modal,
+  TextInput,
+  Stack,
+  InlineLoading,
+  DataTable,
+  TableContainer,
+  Table,
+  TableHead,
+  TableRow,
+  TableHeader,
+  TableBody,
+  TableCell,
+  Tag
+} from '@carbon/react';
+import { Add } from '@carbon/icons-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
 
 const InventoryManagePage: React.FC = () => {
   const queryClient = useQueryClient();
-  const [tab, setTab] = useState<'fabrics' | 'garments'>('fabrics');
 
   // --- Fabrics State ---
   const { data: fabrics, isLoading: fabricsLoading } = useQuery({
@@ -53,111 +68,151 @@ const InventoryManagePage: React.FC = () => {
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['garments'] }); setShowGarmentModal(false); }
   });
 
+  // --- Tables Setup ---
+  const fabricHeaders = [
+    { key: 'name', header: 'Fabric Name' },
+    { key: 'stock', header: 'Available Stock (m)' },
+    { key: 'reorder', header: 'Reorder Level' },
+    { key: 'status', header: 'Status' },
+    { key: 'actions', header: '' }
+  ];
+
+  const fabricRows = fabrics?.map((f: any) => ({
+    id: f.id.toString(),
+    name: f.name,
+    stock: f.quantityAvailable,
+    reorder: f.reorderLevel,
+    status: f.lowStock ? 'Low Stock' : 'OK'
+  })) ?? [];
+
+  const garmentHeaders = [
+    { key: 'name', header: 'Garment Name' },
+    { key: 'price', header: 'Base Price (₹)' },
+    { key: 'fabric', header: 'Default Fabric Needed (m)' }
+  ];
+
+  const garmentRows = garments?.map((g: any) => ({
+    id: g.id.toString(),
+    name: g.name,
+    price: g.basePrice,
+    fabric: g.defaultFabricConsumptionMeters
+  })) ?? [];
+
   return (
-    <IonPage id="inventory-manage-page">
-      <IonHeader>
-        <IonToolbar>
-          <IonButtons slot="start"><IonMenuButton /></IonButtons>
-          <IonTitle>Manage Inventory</IonTitle>
-        </IonToolbar>
-        <IonToolbar>
-          <IonSegment value={tab} onIonChange={e => setTab(e.detail.value as any)}>
-            <IonSegmentButton value="fabrics"><IonLabel>Fabrics</IonLabel></IonSegmentButton>
-            <IonSegmentButton value="garments"><IonLabel>Garments</IonLabel></IonSegmentButton>
-          </IonSegment>
-        </IonToolbar>
-      </IonHeader>
+    <div style={{ padding: '2rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+        <h2>Manage Inventory</h2>
+      </div>
 
-      <IonContent>
-        {tab === 'fabrics' && (
-          <>
-            <IonList>
-              {fabricsLoading && <IonSpinner />}
-              {fabrics?.map((f: any) => (
-                <IonItem key={f.id}>
-                  <IonIcon slot="start" icon={cubeOutline} />
-                  <IonLabel>
-                    <h2>{f.name}</h2>
-                    <p>Stock: {f.quantityAvailable}m (Reorder: {f.reorderLevel}m)</p>
-                  </IonLabel>
-                  {f.lowStock && <IonBadge color="danger" slot="end">Low Stock</IonBadge>}
-                  <IonButton slot="end" fill="outline" onClick={() => setStockModalFabricId(f.id)}>Add Stock</IonButton>
-                </IonItem>
-              ))}
-            </IonList>
-            <IonFab vertical="bottom" horizontal="end" slot="fixed">
-              <IonFabButton onClick={() => setShowFabricModal(true)}><IonIcon icon={addOutline} /></IonFabButton>
-            </IonFab>
-          </>
-        )}
+      <Tabs>
+        <TabList aria-label="Inventory categories">
+          <Tab>Fabrics</Tab>
+          <Tab>Garments</Tab>
+        </TabList>
+        <TabPanels>
+          {/* Fabrics Panel */}
+          <TabPanel>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
+              <Button renderIcon={Add} onClick={() => setShowFabricModal(true)} size="sm">New Fabric</Button>
+            </div>
+            {fabricsLoading ? <InlineLoading /> : (
+              <DataTable rows={fabricRows} headers={fabricHeaders}>
+                {({ rows, headers, getTableProps, getHeaderProps, getRowProps }: any) => (
+                  <TableContainer>
+                    <Table {...getTableProps()}>
+                      <TableHead>
+                        <TableRow>
+                          {headers.map((header: any) => (
+                            <TableHeader {...getHeaderProps({ header })}>{header.header}</TableHeader>
+                          ))}
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {rows.map((row: any) => (
+                          <TableRow {...getRowProps({ row })}>
+                            {row.cells.map((cell: any) => {
+                              if (cell.info.header === 'status') {
+                                return <TableCell key={cell.id}><Tag type={cell.value === 'OK' ? 'green' : 'red'}>{cell.value}</Tag></TableCell>;
+                              }
+                              if (cell.info.header === 'actions') {
+                                return (
+                                  <TableCell key={cell.id}>
+                                    <Button kind="ghost" size="sm" onClick={() => setStockModalFabricId(Number(row.id))}>Add Stock</Button>
+                                  </TableCell>
+                                );
+                              }
+                              return <TableCell key={cell.id}>{cell.value}</TableCell>;
+                            })}
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                )}
+              </DataTable>
+            )}
+          </TabPanel>
 
-        {tab === 'garments' && (
-          <>
-            <IonList>
-              {garmentsLoading && <IonSpinner />}
-              {garments?.map((g: any) => (
-                <IonItem key={g.id}>
-                  <IonLabel>
-                    <h2>{g.name}</h2>
-                    <p>Base Price: ₹{g.basePrice} | Fabric needed: {g.defaultFabricConsumptionMeters}m</p>
-                  </IonLabel>
-                </IonItem>
-              ))}
-            </IonList>
-            <IonFab vertical="bottom" horizontal="end" slot="fixed">
-              <IonFabButton onClick={() => setShowGarmentModal(true)}><IonIcon icon={addOutline} /></IonFabButton>
-            </IonFab>
-          </>
-        )}
+          {/* Garments Panel */}
+          <TabPanel>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
+              <Button renderIcon={Add} onClick={() => setShowGarmentModal(true)} size="sm">New Garment</Button>
+            </div>
+            {garmentsLoading ? <InlineLoading /> : (
+              <DataTable rows={garmentRows} headers={garmentHeaders}>
+                {({ rows, headers, getTableProps, getHeaderProps, getRowProps }: any) => (
+                  <TableContainer>
+                    <Table {...getTableProps()}>
+                      <TableHead>
+                        <TableRow>
+                          {headers.map((header: any) => (
+                            <TableHeader {...getHeaderProps({ header })}>{header.header}</TableHeader>
+                          ))}
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {rows.map((row: any) => (
+                          <TableRow {...getRowProps({ row })}>
+                            {row.cells.map((cell: any) => (
+                              <TableCell key={cell.id}>{cell.value}</TableCell>
+                            ))}
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                )}
+              </DataTable>
+            )}
+          </TabPanel>
+        </TabPanels>
+      </Tabs>
 
-        {/* Create Fabric Modal */}
-        <IonModal isOpen={showFabricModal} onDidDismiss={() => setShowFabricModal(false)} initialBreakpoint={0.75} breakpoints={[0, 0.75]}>
-          <IonHeader>
-            <IonToolbar>
-              <IonTitle>New Fabric</IonTitle>
-              <IonButtons slot="end"><IonButton onClick={() => setShowFabricModal(false)}>Close</IonButton></IonButtons>
-            </IonToolbar>
-          </IonHeader>
-          <IonContent className="ion-padding">
-            <IonItem><IonLabel position="stacked">Fabric Name</IonLabel><IonInput value={fName} onIonInput={e => setFName(e.detail.value!)} /></IonItem>
-            <IonItem><IonLabel position="stacked">Initial Quantity (m)</IonLabel><IonInput type="number" value={fQty} onIonInput={e => setFQty(Number(e.detail.value))} /></IonItem>
-            <IonItem><IonLabel position="stacked">Reorder Level (m)</IonLabel><IonInput type="number" value={fReorder} onIonInput={e => setFReorder(Number(e.detail.value))} /></IonItem>
-            <IonButton expand="block" className="ion-margin-top" onClick={() => createFabric.mutate({ name: fName, quantityAvailable: fQty, reorderLevel: fReorder })}>Save Fabric</IonButton>
-          </IonContent>
-        </IonModal>
+      {/* Fabric Modal */}
+      <Modal open={showFabricModal} onRequestClose={() => setShowFabricModal(false)} onRequestSubmit={() => createFabric.mutate({ name: fName, quantityAvailable: fQty, reorderLevel: fReorder })} modalHeading="New Fabric" primaryButtonText="Save">
+        <Stack gap={5}>
+          <TextInput id="fName" labelText="Fabric Name" value={fName} onChange={e => setFName(e.target.value)} />
+          <TextInput id="fQty" type="number" labelText="Initial Quantity (m)" value={fQty} onChange={e => setFQty(Number(e.target.value))} />
+          <TextInput id="fReorder" type="number" labelText="Reorder Level (m)" value={fReorder} onChange={e => setFReorder(Number(e.target.value))} />
+        </Stack>
+      </Modal>
 
-        {/* Add Stock Modal */}
-        <IonModal isOpen={stockModalFabricId !== null} onDidDismiss={() => setStockModalFabricId(null)} initialBreakpoint={0.5} breakpoints={[0, 0.5]}>
-          <IonHeader>
-            <IonToolbar>
-              <IonTitle>Add Stock</IonTitle>
-              <IonButtons slot="end"><IonButton onClick={() => setStockModalFabricId(null)}>Close</IonButton></IonButtons>
-            </IonToolbar>
-          </IonHeader>
-          <IonContent className="ion-padding">
-            <IonItem><IonLabel position="stacked">Quantity to Add (m)</IonLabel><IonInput type="number" value={stockChange} onIonInput={e => setStockChange(Number(e.detail.value))} /></IonItem>
-            <IonButton expand="block" className="ion-margin-top" onClick={() => addStock.mutate({ id: stockModalFabricId!, qty: stockChange })}>Update Stock</IonButton>
-          </IonContent>
-        </IonModal>
+      {/* Stock Modal */}
+      <Modal open={stockModalFabricId !== null} onRequestClose={() => setStockModalFabricId(null)} onRequestSubmit={() => addStock.mutate({ id: stockModalFabricId!, qty: stockChange })} modalHeading="Add Stock" primaryButtonText="Update">
+        <Stack gap={5}>
+          <TextInput id="stockChange" type="number" labelText="Quantity to Add (m)" value={stockChange} onChange={e => setStockChange(Number(e.target.value))} />
+        </Stack>
+      </Modal>
 
-        {/* Create Garment Modal */}
-        <IonModal isOpen={showGarmentModal} onDidDismiss={() => setShowGarmentModal(false)} initialBreakpoint={0.75} breakpoints={[0, 0.75]}>
-          <IonHeader>
-            <IonToolbar>
-              <IonTitle>New Garment</IonTitle>
-              <IonButtons slot="end"><IonButton onClick={() => setShowGarmentModal(false)}>Close</IonButton></IonButtons>
-            </IonToolbar>
-          </IonHeader>
-          <IonContent className="ion-padding">
-            <IonItem><IonLabel position="stacked">Garment Name</IonLabel><IonInput value={gName} onIonInput={e => setGName(e.detail.value!)} /></IonItem>
-            <IonItem><IonLabel position="stacked">Base Price (₹)</IonLabel><IonInput type="number" value={gPrice} onIonInput={e => setGPrice(Number(e.detail.value))} /></IonItem>
-            <IonItem><IonLabel position="stacked">Default Fabric Needed (m)</IonLabel><IonInput type="number" value={gCons} onIonInput={e => setGCons(Number(e.detail.value))} /></IonItem>
-            <IonButton expand="block" className="ion-margin-top" onClick={() => createGarment.mutate({ name: gName, basePrice: gPrice, defaultFabricConsumptionMeters: gCons })}>Save Garment</IonButton>
-          </IonContent>
-        </IonModal>
-
-      </IonContent>
-    </IonPage>
+      {/* Garment Modal */}
+      <Modal open={showGarmentModal} onRequestClose={() => setShowGarmentModal(false)} onRequestSubmit={() => createGarment.mutate({ name: gName, basePrice: gPrice, defaultFabricConsumptionMeters: gCons })} modalHeading="New Garment" primaryButtonText="Save">
+        <Stack gap={5}>
+          <TextInput id="gName" labelText="Garment Name" value={gName} onChange={e => setGName(e.target.value)} />
+          <TextInput id="gPrice" type="number" labelText="Base Price (₹)" value={gPrice} onChange={e => setGPrice(Number(e.target.value))} />
+          <TextInput id="gCons" type="number" labelText="Default Fabric Needed (m)" value={gCons} onChange={e => setGCons(Number(e.target.value))} />
+        </Stack>
+      </Modal>
+    </div>
   );
 };
 

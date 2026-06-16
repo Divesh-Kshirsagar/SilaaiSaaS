@@ -1,13 +1,32 @@
 import React from 'react';
-import { IonBadge } from '@ionic/react';
-import { ORDER_STATUS_LABELS, ORDER_STATUS_COLORS, type OrderStatus } from '../constants/enums';
+import { Tag } from '@carbon/react';
+import { ORDER_STATUS_LABELS } from '../constants/enums';
 
-interface Props { status: OrderStatus; }
+interface Props {
+  status: string;
+}
 
-const OrderStatusBadge: React.FC<Props> = ({ status }) => (
-  <IonBadge color={ORDER_STATUS_COLORS[status]} style={{ borderRadius: 6, fontSize: '0.7rem' }}>
-    {ORDER_STATUS_LABELS[status]}
-  </IonBadge>
-);
+const OrderStatusBadge: React.FC<Props> = ({ status }) => {
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'DRAFT': return 'gray';
+      case 'CONFIRMED': return 'blue';
+      case 'CUTTING':
+      case 'STITCHING': return 'warm-gray';
+      case 'QUALITY_CHECK': return 'purple';
+      case 'READY':
+      case 'DELIVERED': return 'green';
+      default: return 'gray';
+    }
+  };
+
+  const label = ORDER_STATUS_LABELS[status as keyof typeof ORDER_STATUS_LABELS] || status;
+
+  return (
+    <Tag type={getStatusColor(status)}>
+      {label}
+    </Tag>
+  );
+};
 
 export default OrderStatusBadge;

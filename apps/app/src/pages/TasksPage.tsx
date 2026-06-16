@@ -1,16 +1,28 @@
 import React, { useState } from 'react';
 import {
-  IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonMenuButton,
-  IonButtons, IonList, IonItem, IonLabel, IonBadge, IonButton, IonSpinner,
-  IonAccordionGroup, IonAccordion, IonSelect, IonSelectOption, IonTextarea
-} from '@ionic/react';
+  Accordion,
+  AccordionItem,
+  Button,
+  InlineLoading,
+  Tag,
+  TextInput,
+  Stack,
+  DataTable,
+  TableContainer,
+  Table,
+  TableHead,
+  TableRow,
+  TableHeader,
+  TableBody,
+  TableCell
+} from '@carbon/react';
 import { useTasks, useCompleteTask } from '../hooks/useTasks';
 import { TASK_TYPE, TaskType } from '../constants/enums';
 
 const getTaskTypeColor = (type: TaskType) => {
-  if (type === 'CUTTING') return 'warning';
-  if (type === 'STITCHING') return 'primary';
-  return 'success';
+  if (type === 'CUTTING') return 'warm-gray';
+  if (type === 'STITCHING') return 'blue';
+  return 'green';
 };
 
 const TasksPage: React.FC = () => {
@@ -23,81 +35,100 @@ const TasksPage: React.FC = () => {
   const completed = tasks?.filter(t => t.status === 'COMPLETED') ?? [];
 
   const handleComplete = (id: number) => {
-    // Note: API complete endpoint doesn't currently take notes, but we send it anyway
     completeMutation.mutate(id);
   };
 
+  const completedHeaders = [
+    { key: 'order', header: 'Order Number' },
+    { key: 'type', header: 'Task Type' },
+    { key: 'assignee', header: 'Completed By' }
+  ];
+
+  const completedRows = completed.slice(0, 10).map(t => ({
+    id: t.id.toString(),
+    order: t.order.orderNumber,
+    type: t.taskType,
+    assignee: t.assignedTo?.name ?? 'System'
+  }));
+
   return (
-    <IonPage id="tasks-page">
-      <IonHeader>
-        <IonToolbar>
-          <IonButtons slot="start"><IonMenuButton /></IonButtons>
-          <IonTitle>Tasks Pipeline</IonTitle>
-        </IonToolbar>
-      </IonHeader>
+    <div style={{ padding: '2rem' }}>
+      <h2 style={{ marginBottom: '1rem' }}>Pending Tasks</h2>
+      
+      {isLoading && <InlineLoading description="Loading tasks..." />}
+      {!isLoading && pending.length === 0 && <p>No pending tasks! 🎉</p>}
 
-      <IonContent className="ion-padding">
-        <h2>Pending Tasks</h2>
-        {isLoading && <IonSpinner />}
-        {!isLoading && pending.length === 0 && <p>No pending tasks! 🎉</p>}
-
-        <IonAccordionGroup>
+      <div style={{ marginBottom: '3rem' }}>
+        <Accordion>
           {pending.map(t => (
-            <IonAccordion value={t.id.toString()} key={t.id}>
-              <IonItem slot="header" color="light">
-                <IonLabel>
-                  <h3>{t.order.orderNumber}</h3>
-                  <p>Assignee: {t.assignedTo?.name ?? 'Unassigned'}</p>
-                </IonLabel>
-                <IonBadge color={getTaskTypeColor(t.taskType)}>{t.taskType}</IonBadge>
-              </IonItem>
-
-              <div className="ion-padding" slot="content">
-                <IonItem>
-                  <IonLabel position="stacked">Task Type</IonLabel>
-                  <IonSelect value={t.taskType} disabled>
-                    {Object.values(TASK_TYPE).map(type => (
-                      <IonSelectOption key={type} value={type}>{type}</IonSelectOption>
-                    ))}
-                  </IonSelect>
-                </IonItem>
-                <IonItem>
-                  <IonLabel position="stacked">Notes</IonLabel>
-                  <IonTextarea
-                    placeholder="Add optional notes here..."
-                    value={notes[t.id] || ''}
-                    onIonInput={e => setNotes(prev => ({ ...prev, [t.id]: e.detail.value! }))}
-                  />
-                </IonItem>
-
-                <IonButton
-                  expand="block"
-                  color="success"
-                  className="ion-margin-top"
-                  onClick={() => handleComplete(t.id)}
-                  disabled={completeMutation.isPending}
-                >
-                  Mark Complete
-                </IonButton>
+          <AccordionItem
+            title={
+              <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+                <span><strong>{t.order.orderNumber}</strong> - Assignee: {t.assignedTo?.name ?? 'Unassigned'}</span>
+                <Tag type={getTaskTypeColor(t.taskType)}>{t.taskType}</Tag>
               </div>
-            </IonAccordion>
-          ))}
-        </IonAccordionGroup>
+            }
+            key={t.id}
+          >
+            <Stack gap={5}>
+              <TextInput
+                id={`task-type-${t.id}`}
+                labelText="Task Type"
+                value={t.taskType}
+                readOnly
+              />
+              <TextInput
+                id={`notes-${t.id}`}
+                labelText="Notes"
+                placeholder="Add optional notes here..."
+                value={notes[t.id] || ''}
+                onChange={e => setNotes(prev => ({ ...prev, [t.id]: e.target.value }))}
+              />
+              <Button
+                kind="primary"
+                onClick={() => handleComplete(t.id)}
+                disabled={completeMutation.isPending}
+              >
+                Mark Complete
+              </Button>
+            </Stack>
+          </AccordionItem>
+        ))}
+        </Accordion>
+      </div>
 
-        <h2 className="ion-margin-top">Recently Completed</h2>
-        <IonList>
-          {completed.slice(0, 10).map(t => (
-            <IonItem key={t.id}>
-              <IonLabel>
-                <h3 style={{ textDecoration: 'line-through' }}>{t.order.orderNumber}</h3>
-                <p>Completed by {t.assignedTo?.name ?? 'System'}</p>
-              </IonLabel>
-              <IonBadge color="medium">{t.taskType}</IonBadge>
-            </IonItem>
-          ))}
-        </IonList>
-      </IonContent>
-    </IonPage>
+      <h2 style={{ marginBottom: '1rem' }}>Recently Completed</h2>
+      {completedRows.length > 0 ? (
+        <DataTable rows={completedRows} headers={completedHeaders}>
+          {({ rows, headers, getTableProps, getHeaderProps, getRowProps }: any) => (
+            <TableContainer>
+              <Table {...getTableProps()}>
+                <TableHead>
+                  <TableRow>
+                    {headers.map((header: any) => (
+                      <TableHeader {...getHeaderProps({ header })}>{header.header}</TableHeader>
+                    ))}
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {rows.map((row: any) => (
+                    <TableRow {...getRowProps({ row })}>
+                      {row.cells.map((cell: any) => (
+                        <TableCell key={cell.id}>
+                          {cell.info.header === 'type' ? <Tag type="gray">{cell.value}</Tag> : cell.value}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+        </DataTable>
+      ) : (
+        <p>No completed tasks yet.</p>
+      )}
+    </div>
   );
 };
 
