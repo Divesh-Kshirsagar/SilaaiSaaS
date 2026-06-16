@@ -26,7 +26,7 @@ public class DashboardService {
     ) {}
 
     public DashboardStats getStats() {
-        Shop shop = shopService.getShop();
+        Shop shop = shopService.getCurrentShop();
         Long shopId = shop.getId();
 
         long pending = orderRepository.countByShopIdAndStatus(shopId, OrderStatus.CONFIRMED)

@@ -28,9 +28,11 @@ public class TaskService {
         User user = userRepository.findByPhone(phone)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        // OWNER/MANAGER sees all tasks; TAILOR sees only their own
+        Long shopId = user.getShop().getId();
+
+        // OWNER/MANAGER sees all tasks in THEIR shop; TAILOR sees only their own
         return switch (user.getRole()) {
-            case OWNER, MANAGER -> taskRepository.findAll();
+            case OWNER, MANAGER -> taskRepository.findByOrderShopId(shopId);
             default -> taskRepository.findByAssignedToId(user.getId());
         };
     }

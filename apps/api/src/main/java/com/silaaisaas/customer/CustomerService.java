@@ -20,7 +20,7 @@ public class CustomerService {
     public record CustomerRequest(@NotBlank String name, @NotBlank String phone) {}
 
     public Page<Customer> list(String search, Pageable pageable) {
-        Shop shop = shopService.getShop();
+        Shop shop = shopService.getCurrentShop();
         return customerRepository.searchByShop(shop.getId(), search == null ? "" : search, pageable);
     }
 
@@ -31,7 +31,7 @@ public class CustomerService {
 
     @Transactional
     public Customer create(CustomerRequest req) {
-        Shop shop = shopService.getShop();
+        Shop shop = shopService.getCurrentShop();
         Customer customer = Customer.builder()
                 .shop(shop)
                 .name(req.name())

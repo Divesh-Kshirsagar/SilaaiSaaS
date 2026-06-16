@@ -66,7 +66,7 @@ public class OrderService {
     // ---- API Methods ----
 
     public List<Order> list(OrderStatus status, Long customerId) {
-        Shop shop = shopService.getShop();
+        Shop shop = shopService.getCurrentShop();
         if (status != null) return orderRepository.findByShopIdAndStatus(shop.getId(), status);
         if (customerId != null) return orderRepository.findByShopIdAndCustomerId(shop.getId(), customerId);
         return orderRepository.findByShopIdOrderByBookingDateDesc(shop.getId());
@@ -79,7 +79,7 @@ public class OrderService {
 
     @Transactional
     public Order create(CreateOrderRequest req) {
-        Shop shop = shopService.getShop();
+        Shop shop = shopService.getCurrentShop();
         Customer customer = customerService.getById(req.customerId());
         User creator = currentUser();
 

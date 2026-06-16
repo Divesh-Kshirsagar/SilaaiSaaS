@@ -18,13 +18,13 @@ public class GarmentCatalogService {
     public record GarmentRequest(String name, Double basePrice, Double defaultFabricConsumptionMeters) {}
 
     public List<GarmentCatalog> list() {
-        Shop shop = shopService.getShop();
+        Shop shop = shopService.getCurrentShop();
         return garmentCatalogRepository.findByShopId(shop.getId());
     }
 
     @Transactional
     public GarmentCatalog create(GarmentRequest req) {
-        Shop shop = shopService.getShop();
+        Shop shop = shopService.getCurrentShop();
         return garmentCatalogRepository.save(GarmentCatalog.builder()
                 .shop(shop)
                 .name(req.name())

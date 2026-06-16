@@ -25,7 +25,7 @@ public class FabricService {
                                   Double reorderLevel, boolean lowStock) {}
 
     public List<FabricResponse> list() {
-        Shop shop = shopService.getShop();
+        Shop shop = shopService.getCurrentShop();
         return fabricRepository.findByShopId(shop.getId()).stream()
                 .map(f -> new FabricResponse(f.getId(), f.getName(),
                         f.getQuantityAvailable(), f.getReorderLevel(),
@@ -40,7 +40,7 @@ public class FabricService {
 
     @Transactional
     public Fabric create(FabricRequest req) {
-        Shop shop = shopService.getShop();
+        Shop shop = shopService.getCurrentShop();
         return fabricRepository.save(Fabric.builder()
                 .shop(shop)
                 .name(req.name())

@@ -1,5 +1,6 @@
 package com.silaaisaas.auth;
 
+import com.silaaisaas.common.tenant.TenantContext;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -40,17 +41,31 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        String phone = jwtUtil.extractPhone(token);
-        String role = jwtUtil.extractAllClaims(token).get("role", String.class);
+        try {
+            String phone = jwtUtil.extractPhone(token);
+            var claims = jwtUtil.extractAllClaims(token);
+            String role = claims.get("role", String.class);
 
-        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                phone,
-                null,
-                List.of(new SimpleGrantedAuthority("ROLE_" + role))
-        );
-        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+            // Populate TenantContext from JWT claims
+            Long shopId  = claims.get("shopId", Long.class);
+            Long orgId   = claims.get("orgId",  Long.class);
+            Long userId  = claims.get("userId", Long.class);
+            TenantContext.setCurrentShopId(shopId);
+            TenantContext.setCurrentOrgId(orgId);
+            TenantContext.setCurrentUserId(userId);
 
-        filterChain.doFilter(request, response);
+            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                    phone,
+                    null,
+                    List.of(new SimpleGrantedAuthority("ROLE_" + role))
+            );
+            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            filterChain.doFilter(request, response);
+        } finally {
+            // Always clear TenantContext to prevent thread pool leaks
+            TenantContext.clear();
+        }
     }
 }

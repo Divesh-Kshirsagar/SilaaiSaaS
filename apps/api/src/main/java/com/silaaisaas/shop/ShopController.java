@@ -13,6 +13,6 @@ public class ShopController {
 
     @GetMapping
     public ResponseEntity<Shop> getShop() {
-        return ResponseEntity.ok(shopService.getShop());
+        return ResponseEntity.ok(shopService.getCurrentShop());
     }
 }
