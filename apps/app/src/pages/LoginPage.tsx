@@ -55,8 +55,12 @@ export default function LoginPage() {
                   id="phone"
                   type="tel"
                   placeholder="9999999999"
+                  maxLength={10}
+                  minLength={10}
+                  pattern="[0-9]{10}"
+                  title="Phone number must be exactly 10 digits"
                   value={phone}
-                  onChange={e => setPhone(e.target.value)}
+                  onChange={e => setPhone(e.target.value.replace(/\D/g, ''))}
                   required
                 />
               </div>

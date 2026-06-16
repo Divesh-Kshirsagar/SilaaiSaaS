@@ -11,7 +11,10 @@ export default function MeasurementApprovalPage() {
 
   const { data: pending, isLoading } = useQuery({
     queryKey: ['measurements', 'pending'],
-    queryFn: () => api.get('/measurements/pending').then(res => res.data),
+    queryFn: () => api.get('/measurements/pending').then(res => {
+      const data = res.data;
+      return Array.isArray(data) ? data : (data?.content || []);
+    }),
   })
 
   const approveMutation = useMutation({

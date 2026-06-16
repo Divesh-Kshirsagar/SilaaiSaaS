@@ -35,7 +35,10 @@ export default function OrderListPage() {
     queryKey: ['orders', statusFilter],
     queryFn: () => {
       const params = statusFilter !== 'ALL' ? { status: statusFilter } : {}
-      return api.get('/orders', { params }).then((res) => res.data)
+      return api.get('/orders', { params }).then((res) => {
+        const data = res.data;
+        return Array.isArray(data) ? data : (data?.content || []);
+      })
     },
   })
 

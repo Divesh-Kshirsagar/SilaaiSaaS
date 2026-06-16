@@ -43,7 +43,10 @@ export default function CustomersPage() {
 
   const { data: customers, isLoading } = useQuery<Customer[]>({
     queryKey: ['customers'],
-    queryFn: () => api.get('/customers').then((res) => res.data),
+    queryFn: () => api.get('/customers').then((res) => {
+      const data = res.data;
+      return Array.isArray(data) ? data : (data?.content || []);
+    }),
   })
 
   const createMutation = useMutation({
@@ -103,8 +106,13 @@ export default function CustomersPage() {
                   <Label htmlFor="phone">Phone</Label>
                   <Input
                     id="phone"
+                    type="tel"
+                    maxLength={10}
+                    minLength={10}
+                    pattern="[0-9]{10}"
+                    title="Phone number must be exactly 10 digits"
                     value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '') })}
                     required
                   />
                 </div>

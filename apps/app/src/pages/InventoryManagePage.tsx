@@ -32,7 +32,10 @@ export default function InventoryManagePage() {
 
   const { data: items, isLoading } = useQuery({
     queryKey: ['inventory'],
-    queryFn: () => api.get('/inventory').then((res) => res.data),
+    queryFn: () => api.get('/inventory').then((res) => {
+      const data = res.data;
+      return Array.isArray(data) ? data : (data?.content || []);
+    }),
   })
 
   const addMutation = useMutation({

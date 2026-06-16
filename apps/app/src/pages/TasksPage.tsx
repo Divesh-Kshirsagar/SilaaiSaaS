@@ -21,7 +21,10 @@ export default function TasksPage() {
 
   const { data: tasks, isLoading } = useQuery<Task[]>({
     queryKey: ['tasks'],
-    queryFn: () => api.get('/tasks').then(res => res.data),
+    queryFn: () => api.get('/tasks').then(res => {
+      const data = res.data;
+      return Array.isArray(data) ? data : (data?.content || []);
+    }),
   })
 
   const startMutation = useMutation({

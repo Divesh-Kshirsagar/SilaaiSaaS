@@ -19,22 +19,34 @@ export default function NewOrderPage() {
 
   const { data: customers } = useQuery({
     queryKey: ['customers'],
-    queryFn: () => api.get('/customers').then(res => res.data),
+    queryFn: () => api.get('/customers').then(res => {
+      const data = res.data;
+      return Array.isArray(data) ? data : (data?.content || []);
+    }),
   })
 
   const { data: garments } = useQuery({
     queryKey: ['garments'],
-    queryFn: () => api.get('/garments').then(res => res.data),
+    queryFn: () => api.get('/garments').then(res => {
+      const data = res.data;
+      return Array.isArray(data) ? data : (data?.content || []);
+    }),
   })
 
   const { data: inventory } = useQuery({
     queryKey: ['inventory'],
-    queryFn: () => api.get('/inventory').then(res => res.data),
+    queryFn: () => api.get('/inventory').then(res => {
+      const data = res.data;
+      return Array.isArray(data) ? data : (data?.content || []);
+    }),
   })
 
   const { data: measurements } = useQuery({
     queryKey: ['customers', customerId, 'measurements'],
-    queryFn: () => api.get(`/customers/${customerId}/measurements`).then(res => res.data),
+    queryFn: () => api.get(`/customers/${customerId}/measurements`).then(res => {
+      const data = res.data;
+      return Array.isArray(data) ? data : (data?.content || []);
+    }),
     enabled: !!customerId,
   })
 
@@ -113,7 +125,7 @@ export default function NewOrderPage() {
                     <SelectValue placeholder="Select a customer" />
                   </SelectTrigger>
                   <SelectContent>
-                    {customers?.map((c: any) => (
+                    {Array.isArray(customers) && customers.map((c: any) => (
                       <SelectItem key={c.id} value={c.id.toString()}>{c.name} ({c.phone})</SelectItem>
                     ))}
                   </SelectContent>
@@ -170,7 +182,7 @@ export default function NewOrderPage() {
                         <SelectValue placeholder="Select garment" />
                       </SelectTrigger>
                       <SelectContent>
-                        {garments?.map((g: any) => (
+                        {Array.isArray(garments) && garments.map((g: any) => (
                           <SelectItem key={g.id} value={g.id.toString()}>{g.name} - ₹{g.basePrice}</SelectItem>
                         ))}
                       </SelectContent>
@@ -199,7 +211,7 @@ export default function NewOrderPage() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="none">Customer provided material</SelectItem>
-                        {inventory?.filter((inv: any) => inv.category === 'FABRIC').map((inv: any) => (
+                        {Array.isArray(inventory) && inventory.filter((inv: any) => inv.category === 'FABRIC').map((inv: any) => (
                           <SelectItem key={inv.id} value={inv.id.toString()}>{inv.name} (Stock: {inv.quantityAvailable})</SelectItem>
                         ))}
                       </SelectContent>
@@ -218,7 +230,7 @@ export default function NewOrderPage() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="none">Enter later / Not required</SelectItem>
-                        {measurements?.map((m: any) => (
+                        {Array.isArray(measurements) && measurements.map((m: any) => (
                           <SelectItem key={m.id} value={m.id.toString()}>{m.garmentType} (v{m.version})</SelectItem>
                         ))}
                       </SelectContent>

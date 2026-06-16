@@ -71,7 +71,19 @@ export default function RegisterPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="reg-phone">Phone Number</Label>
-                <Input id="reg-phone" name="phone" type="tel" placeholder="9999999999" value={form.phone} onChange={handleChange} required />
+                <Input 
+                  id="reg-phone" 
+                  name="phone" 
+                  type="tel" 
+                  placeholder="9999999999" 
+                  maxLength={10}
+                  minLength={10}
+                  pattern="[0-9]{10}"
+                  title="Phone number must be exactly 10 digits"
+                  value={form.phone} 
+                  onChange={e => setForm({...form, phone: e.target.value.replace(/\D/g, '')})} 
+                  required 
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="reg-password">Password</Label>
