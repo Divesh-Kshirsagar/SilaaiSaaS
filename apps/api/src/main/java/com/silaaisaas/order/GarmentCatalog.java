@@ -4,6 +4,9 @@ import com.silaaisaas.shop.Shop;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "garment_catalog")
 @Data
@@ -26,7 +29,11 @@ public class GarmentCatalog {
     @Column(nullable = false)
     private Double basePrice;
 
-    // Default fabric consumption in metres per garment unit
-    @Column(nullable = false)
-    private Double defaultFabricConsumptionMeters;
+    /**
+     * Bill of Materials: the raw materials required to make one unit of this garment.
+     * Replaces the old hardcoded defaultFabricConsumptionMeters field.
+     */
+    @OneToMany(mappedBy = "garmentCatalog", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<BillOfMaterial> bom = new ArrayList<>();
 }

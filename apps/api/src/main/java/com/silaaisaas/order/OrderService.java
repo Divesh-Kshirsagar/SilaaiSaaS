@@ -10,8 +10,8 @@ import com.silaaisaas.common.exception.BusinessException;
 import com.silaaisaas.common.exception.ResourceNotFoundException;
 import com.silaaisaas.customer.Customer;
 import com.silaaisaas.customer.CustomerService;
-import com.silaaisaas.inventory.Fabric;
-import com.silaaisaas.inventory.FabricRepository;
+import com.silaaisaas.inventory.InventoryItem;
+import com.silaaisaas.inventory.InventoryItemRepository;
 import com.silaaisaas.inventory.InventoryTransaction;
 import com.silaaisaas.inventory.InventoryTransactionRepository;
 import com.silaaisaas.shop.Shop;
@@ -32,23 +32,24 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
-    private final FabricRepository fabricRepository;
+    private final InventoryItemRepository inventoryItemRepository;
     private final InventoryTransactionRepository inventoryTransactionRepository;
     private final TaskRepository taskRepository;
     private final CustomerService customerService;
     private final ShopService shopService;
     private final UserRepository userRepository;
     private final GarmentCatalogRepository garmentCatalogRepository;
+    private final BillOfMaterialRepository bomRepository;
 
-    // ---- DTOs (Java Records) ----
+    // ---- DTOs ----
 
     public record OrderItemRequest(Long garmentCatalogId, Integer quantity,
-                                   Long fabricId, Long measurementId) {}
+                                   Long inventoryItemId, Long measurementId) {}
 
     public record CreateOrderRequest(Long customerId, LocalDate deliveryDate,
-                                     Double advancePaid, List<OrderItemRequest> items) {}
+                                     List<OrderItemRequest> items) {}
 
-    public record UpdateOrderRequest(LocalDate deliveryDate, Double advancePaid) {}
+    public record UpdateOrderRequest(LocalDate deliveryDate) {}
 
     // ---- Helpers ----
 
@@ -98,27 +99,31 @@ public class OrderService {
                 .bookingDate(LocalDate.now())
                 .deliveryDate(req.deliveryDate())
                 .status(OrderStatus.DRAFT)
-                .totalAmount(total)
-                .advancePaid(req.advancePaid() != null ? req.advancePaid() : 0.0)
                 .build());
 
-        // Create order items
+        // Create order items using BOM for material tracking
         for (OrderItemRequest itemReq : req.items()) {
             GarmentCatalog garment = garmentCatalogRepository.findById(itemReq.garmentCatalogId()).orElseThrow();
-            Fabric fabric = itemReq.fabricId() != null
-                    ? fabricRepository.findById(itemReq.fabricId()).orElse(null)
+            InventoryItem inventoryItem = itemReq.inventoryItemId() != null
+                    ? inventoryItemRepository.findById(itemReq.inventoryItemId()).orElse(null)
                     : null;
-            double fabricUsed = fabric != null
-                    ? garment.getDefaultFabricConsumptionMeters() * itemReq.quantity()
-                    : 0.0;
+
+            // Calculate material quantity from BOM if inventory item provided
+            double materialUsed = 0.0;
+            if (inventoryItem != null) {
+                materialUsed = bomRepository.findByGarmentCatalogId(garment.getId()).stream()
+                        .filter(bom -> bom.getInventoryItem().getId().equals(inventoryItem.getId()))
+                        .mapToDouble(bom -> bom.getQuantityRequired() * itemReq.quantity())
+                        .sum();
+            }
 
             orderItemRepository.save(OrderItem.builder()
                     .order(order)
                     .garmentCatalog(garment)
                     .quantity(itemReq.quantity())
                     .pricePerItem(garment.getBasePrice())
-                    .fabric(fabric)
-                    .fabricQuantityUsed(fabricUsed)
+                    .inventoryItem(inventoryItem)
+                    .materialQuantityUsed(materialUsed)
                     .measurementId(itemReq.measurementId())
                     .build());
         }
@@ -130,16 +135,15 @@ public class OrderService {
     public Order update(Long id, UpdateOrderRequest req) {
         Order order = getById(id);
         order.setDeliveryDate(req.deliveryDate());
-        order.setAdvancePaid(req.advancePaid());
         return orderRepository.save(order);
     }
 
     /**
-     * Core confirm logic:
-     * 1. Validate sufficient fabric stock for every order item.
-     * 2. Deduct fabric stock and create InventoryTransaction records.
+     * Confirm an order:
+     * 1. Validate sufficient stock for all BOM items.
+     * 2. Deduct stock, create InventoryTransaction records.
      * 3. Set order status to CONFIRMED.
-     * 4. Auto-create first CUTTING task assigned to a tailor.
+     * 4. Auto-create first CUTTING task.
      */
     @Transactional
     public Order confirmOrder(Long orderId) {
@@ -153,32 +157,32 @@ public class OrderService {
 
         // Step 1: Validate stock
         for (OrderItem item : items) {
-            if (item.getFabric() == null) continue; // customer-provided fabric, skip
-            Fabric fabric = item.getFabric();
-            if (fabric.getQuantityAvailable() < item.getFabricQuantityUsed()) {
+            if (item.getInventoryItem() == null) continue;
+            InventoryItem inv = item.getInventoryItem();
+            if (inv.getQuantityAvailable() < item.getMaterialQuantityUsed()) {
                 throw new BusinessException(
-                        "Insufficient stock for fabric '" + fabric.getName() +
-                        "'. Required: " + item.getFabricQuantityUsed() +
-                        "m, Available: " + fabric.getQuantityAvailable() + "m");
+                        "Insufficient stock for '" + inv.getName() +
+                        "'. Required: " + item.getMaterialQuantityUsed() +
+                        " " + inv.getUnitType() + ", Available: " + inv.getQuantityAvailable());
             }
         }
 
         // Step 2: Deduct stock
         for (OrderItem item : items) {
-            if (item.getFabric() == null) continue;
-            Fabric fabric = item.getFabric();
-            fabric.setQuantityAvailable(fabric.getQuantityAvailable() - item.getFabricQuantityUsed());
-            fabricRepository.save(fabric);
+            if (item.getInventoryItem() == null) continue;
+            InventoryItem inv = item.getInventoryItem();
+            inv.setQuantityAvailable(inv.getQuantityAvailable() - item.getMaterialQuantityUsed());
+            inventoryItemRepository.save(inv);
 
             inventoryTransactionRepository.save(InventoryTransaction.builder()
-                    .fabric(fabric)
+                    .inventoryItem(inv)
                     .orderItem(item)
-                    .quantityChange(-item.getFabricQuantityUsed())
+                    .quantityChange(-item.getMaterialQuantityUsed())
                     .reason(TransactionReason.SALE)
                     .build());
         }
 
-        // Step 3: Update order status
+        // Step 3: Confirm order
         order.setStatus(OrderStatus.CONFIRMED);
         orderRepository.save(order);
 
@@ -187,7 +191,7 @@ public class OrderService {
                 .filter(u -> u.getRole().name().equals("TAILOR") &&
                              u.getShop().getId().equals(order.getShop().getId()))
                 .findFirst()
-                .orElse(null); // null = unassigned if no tailor exists
+                .orElse(null);
 
         taskRepository.save(Task.builder()
                 .order(order)

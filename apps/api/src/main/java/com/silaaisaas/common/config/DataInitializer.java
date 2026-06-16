@@ -2,11 +2,15 @@ package com.silaaisaas.common.config;
 
 import com.silaaisaas.auth.User;
 import com.silaaisaas.auth.UserRepository;
+import com.silaaisaas.common.enums.ItemCategory;
+import com.silaaisaas.common.enums.UnitType;
 import com.silaaisaas.common.enums.UserRole;
-import com.silaaisaas.inventory.Fabric;
-import com.silaaisaas.inventory.FabricRepository;
+import com.silaaisaas.inventory.InventoryItem;
+import com.silaaisaas.inventory.InventoryItemRepository;
 import com.silaaisaas.order.GarmentCatalog;
 import com.silaaisaas.order.GarmentCatalogRepository;
+import com.silaaisaas.shop.Organization;
+import com.silaaisaas.shop.OrganizationRepository;
 import com.silaaisaas.shop.Shop;
 import com.silaaisaas.shop.ShopRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,9 +26,10 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class DataInitializer implements CommandLineRunner {
 
+    private final OrganizationRepository organizationRepository;
     private final ShopRepository shopRepository;
     private final UserRepository userRepository;
-    private final FabricRepository fabricRepository;
+    private final InventoryItemRepository inventoryItemRepository;
     private final GarmentCatalogRepository garmentCatalogRepository;
     private final PasswordEncoder passwordEncoder;
 
@@ -37,14 +42,21 @@ public class DataInitializer implements CommandLineRunner {
 
         log.info("Seeding dev data...");
 
-        // 1. Shop
+        // 1. Organization
+        Organization org = organizationRepository.save(Organization.builder()
+                .name("Ramesh Textiles")
+                .defaultTaxRate(0.18)
+                .build());
+
+        // 2. Shop
         Shop shop = shopRepository.save(Shop.builder()
-                .name("Ramesh Tailors")
+                .organization(org)
+                .name("Ramesh Tailors - Main Branch")
                 .phone("9876500000")
                 .address("123 MG Road, Bangalore")
                 .build());
 
-        // 2. Owner user (login: 9999999999 / admin)
+        // 3. Owner user (login: 9999999999 / admin)
         userRepository.save(User.builder()
                 .shop(shop)
                 .name("Owner")
@@ -53,7 +65,7 @@ public class DataInitializer implements CommandLineRunner {
                 .passwordHash(passwordEncoder.encode("admin"))
                 .build());
 
-        // 3. Tailor user (login: 8888888888 / tailor)
+        // 4. Tailor user (login: 8888888888 / tailor)
         userRepository.save(User.builder()
                 .shop(shop)
                 .name("Suresh Tailor")
@@ -62,15 +74,15 @@ public class DataInitializer implements CommandLineRunner {
                 .passwordHash(passwordEncoder.encode("tailor"))
                 .build());
 
-        // 4. Fabrics
-        fabricRepository.save(Fabric.builder().shop(shop).name("Blue Cotton").quantityAvailable(50.0).reorderLevel(10.0).build());
-        fabricRepository.save(Fabric.builder().shop(shop).name("White Linen").quantityAvailable(30.0).reorderLevel(8.0).build());
-        fabricRepository.save(Fabric.builder().shop(shop).name("Black Polyester").quantityAvailable(20.0).reorderLevel(5.0).build());
+        // 5. Inventory items (fabrics + accessories)
+        inventoryItemRepository.save(InventoryItem.builder().shop(shop).name("Blue Cotton").category(ItemCategory.FABRIC).unitType(UnitType.METRES).quantityAvailable(50.0).reorderLevel(10.0).unitCost(120.0).build());
+        inventoryItemRepository.save(InventoryItem.builder().shop(shop).name("White Linen").category(ItemCategory.FABRIC).unitType(UnitType.METRES).quantityAvailable(30.0).reorderLevel(8.0).unitCost(150.0).build());
+        inventoryItemRepository.save(InventoryItem.builder().shop(shop).name("Pearl Buttons (12mm)").category(ItemCategory.BUTTON).unitType(UnitType.PIECES).quantityAvailable(500.0).reorderLevel(50.0).unitCost(2.0).build());
 
-        // 5. Garment types
-        garmentCatalogRepository.save(GarmentCatalog.builder().shop(shop).name("Men's Shirt").basePrice(350.0).defaultFabricConsumptionMeters(2.5).build());
-        garmentCatalogRepository.save(GarmentCatalog.builder().shop(shop).name("Kurta").basePrice(500.0).defaultFabricConsumptionMeters(3.0).build());
-        garmentCatalogRepository.save(GarmentCatalog.builder().shop(shop).name("Trousers").basePrice(400.0).defaultFabricConsumptionMeters(1.8).build());
+        // 6. Garment types
+        garmentCatalogRepository.save(GarmentCatalog.builder().shop(shop).name("Men's Shirt").basePrice(350.0).build());
+        garmentCatalogRepository.save(GarmentCatalog.builder().shop(shop).name("Kurta").basePrice(500.0).build());
+        garmentCatalogRepository.save(GarmentCatalog.builder().shop(shop).name("Trousers").basePrice(400.0).build());
 
         log.info("Dev seed complete. Shop: '{}', Owner login: 9999999999 / admin", shop.getName());
     }

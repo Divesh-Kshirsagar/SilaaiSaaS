@@ -1,7 +1,7 @@
 package com.silaaisaas.common.dashboard;
 
 import com.silaaisaas.common.enums.OrderStatus;
-import com.silaaisaas.inventory.FabricRepository;
+import com.silaaisaas.inventory.InventoryItemRepository;
 import com.silaaisaas.order.OrderRepository;
 import com.silaaisaas.shop.Shop;
 import com.silaaisaas.shop.ShopService;
@@ -15,7 +15,7 @@ import java.time.LocalDate;
 public class DashboardService {
 
     private final OrderRepository orderRepository;
-    private final FabricRepository fabricRepository;
+    private final InventoryItemRepository inventoryItemRepository;
     private final ShopService shopService;
 
     public record DashboardStats(
@@ -35,7 +35,9 @@ public class DashboardService {
 
         long today = orderRepository.findByShopIdAndDeliveryDate(shopId, LocalDate.now()).size();
 
-        long lowStock = fabricRepository.findLowStockByShopId(shopId).size();
+        long lowStock = inventoryItemRepository.findByShopId(shopId).stream()
+                .filter(i -> i.getQuantityAvailable() <= i.getReorderLevel())
+                .count();
 
         long ready = orderRepository.countByShopIdAndStatus(shopId, OrderStatus.READY);
 

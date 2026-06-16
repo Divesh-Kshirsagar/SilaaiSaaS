@@ -21,9 +21,7 @@ public class CustomerPortalController {
             String customerName,
             String status,
             LocalDate bookingDate,
-            LocalDate deliveryDate,
-            Double totalAmount,
-            Double advancePaid
+            LocalDate deliveryDate
     ) {}
 
     @GetMapping("/orders/{orderNumber}")
@@ -36,9 +34,7 @@ public class CustomerPortalController {
                 order.getCustomer().getName(),
                 order.getStatus().name(),
                 order.getBookingDate(),
-                order.getDeliveryDate(),
-                order.getTotalAmount(),
-                order.getAdvancePaid()
+                order.getDeliveryDate()
         ));
     }
 }

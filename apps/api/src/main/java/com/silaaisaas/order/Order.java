@@ -45,9 +45,5 @@ public class Order {
     @Column(nullable = false)
     private OrderStatus status;
 
-    @Column(nullable = false)
-    private Double totalAmount;
-
-    @Column(nullable = false)
-    private Double advancePaid;
+    // totalAmount and advancePaid moved to Invoice/Payment entities (Phase C)
 }

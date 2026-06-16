@@ -1,6 +1,6 @@
 package com.silaaisaas.order;
 
-import com.silaaisaas.inventory.Fabric;
+import com.silaaisaas.inventory.InventoryItem;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -30,13 +30,13 @@ public class OrderItem {
     @Column(nullable = false)
     private Double pricePerItem;
 
-    // Nullable — null means customer provided their own fabric
+    // Nullable — null means customer provided their own material
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "fabric_id")
-    private Fabric fabric;
+    @JoinColumn(name = "inventory_item_id")
+    private InventoryItem inventoryItem;
 
-    // Metres of fabric used (calculated at order confirmation)
-    private Double fabricQuantityUsed;
+    // Quantity of material used (calculated at order confirmation)
+    private Double materialQuantityUsed;
 
     // Measurement snapshot reference (nullable if measurements entered separately)
     private Long measurementId;

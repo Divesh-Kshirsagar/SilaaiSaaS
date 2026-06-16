@@ -19,10 +19,10 @@ public class InventoryTransaction {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "fabric_id", nullable = false)
-    private Fabric fabric;
+    @JoinColumn(name = "inventory_item_id", nullable = false)
+    private InventoryItem inventoryItem;
 
-    // Nullable — only set when this transaction is triggered by an order item deduction
+    // Nullable — only set when triggered by an order item deduction
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_item_id")
     private OrderItem orderItem;

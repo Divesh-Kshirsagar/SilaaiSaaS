@@ -29,4 +29,11 @@ public class GarmentCatalogController {
             @RequestBody GarmentCatalogService.GarmentRequest req) {
         return ResponseEntity.ok(garmentCatalogService.update(id, req));
     }
+
+    @PostMapping("/{id}/bom")
+    public ResponseEntity<BillOfMaterial> addBomLine(
+            @PathVariable Long id,
+            @RequestBody GarmentCatalogService.BomLineRequest req) {
+        return ResponseEntity.status(201).body(garmentCatalogService.addBomLine(id, req));
+    }
 }
