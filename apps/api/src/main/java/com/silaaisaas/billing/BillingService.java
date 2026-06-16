@@ -35,6 +35,7 @@ public class BillingService {
     public record InvoiceResponse(
             Long invoiceId,
             String invoiceNumber,
+            Long orderId,
             String orderNumber,
             Double subtotal,
             Double discountAmount,
@@ -63,7 +64,7 @@ public class BillingService {
         double balance = invoice.getGrandTotal() - amountPaid;
         return new InvoiceResponse(
                 invoice.getId(), invoice.getInvoiceNumber(),
-                invoice.getOrder().getOrderNumber(),
+                invoice.getOrder().getId(), invoice.getOrder().getOrderNumber(),
                 invoice.getSubtotal(), invoice.getDiscountAmount(),
                 invoice.getTaxRate(), invoice.getTaxAmount(),
                 invoice.getGrandTotal(), amountPaid, balance,
@@ -116,6 +117,12 @@ public class BillingService {
         Invoice invoice = invoiceRepository.findById(invoiceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Invoice not found: " + invoiceId));
         return toResponse(invoice);
+    }
+
+    public org.springframework.data.domain.Page<InvoiceResponse> getAllInvoices(org.springframework.data.domain.Pageable pageable) {
+        Long shopId = com.silaaisaas.common.tenant.TenantContext.getCurrentShopId();
+        return invoiceRepository.findByOrderShopIdOrderByIssuedAtDesc(shopId, pageable)
+                .map(this::toResponse);
     }
 
     @Transactional

@@ -17,6 +17,12 @@ public class BillingController {
         return ResponseEntity.ok(billingService.getByOrderId(orderId));
     }
 
+    /** Get all invoices for the current shop */
+    @GetMapping("/invoices")
+    public ResponseEntity<org.springframework.data.domain.Page<BillingService.InvoiceResponse>> getAllInvoices(org.springframework.data.domain.Pageable pageable) {
+        return ResponseEntity.ok(billingService.getAllInvoices(pageable));
+    }
+
     /** Manually trigger invoice creation (if not auto-created on confirm) */
     @PostMapping("/orders/{orderId}/invoice")
     public ResponseEntity<BillingService.InvoiceResponse> createInvoice(@PathVariable Long orderId) {

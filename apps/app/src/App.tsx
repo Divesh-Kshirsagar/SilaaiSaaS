@@ -16,6 +16,7 @@ import OrderDetailPage from '@/pages/OrderDetailPage'
 import TasksPage from '@/pages/TasksPage'
 import InventoryManagePage from '@/pages/InventoryManagePage'
 import CustomerPortalPage from '@/pages/CustomerPortalPage'
+import BillingPage from '@/pages/BillingPage'
 import InvoicePage from '@/pages/InvoicePage'
 import MeasurementApprovalPage from '@/pages/MeasurementApprovalPage'
 import ReportsPage from '@/pages/ReportsPage'
@@ -66,7 +67,7 @@ export default function App() {
 
               {/* Billing — OWNER, MANAGER */}
               <Route element={<ProtectedRoute allowedRoles={['OWNER', 'MANAGER']} />}>
-                <Route path="/billing" element={<Navigate to="/orders" replace />} />
+                <Route path="/billing" element={<BillingPage />} />
                 <Route path="/billing/orders/:orderId" element={<InvoicePage />} />
               </Route>
 
