@@ -51,6 +51,9 @@ Every artifact, plan, task, or walkthrough file MUST follow a **unique, determin
 | `SPEC` | API or UI specification | `AGENTS/plans/` |
 | `SCRATCH` | Temporary scripts / throwaway files | `AGENTS/scratch/` |
 
+> [!IMPORTANT]
+> A `WALK` file is **mandatory** after every phase is completed and merged. This is a non-negotiable rule.
+
 ### 2.3 Examples
 
 ```
@@ -91,10 +94,27 @@ AGENTS/walkthroughs/20260620_WALK_auth_module_01.md
 - Update the task file **as you work** (mark in-progress, then done).
 - Commit one logical unit of work at a time.
 
-### 3.4 After Completing Work
+### 3.4 After Completing Work (MANDATORY)
 
-- Create a `WALK` file summarising: what changed, how it was tested, known limitations.
-- Embed screenshots or recording paths if UI changes were made.
+> [!IMPORTANT]
+> **A walkthrough (`WALK`) file MUST be created after every phase is complete and merged to `main`.** Skipping this step is a violation of project governance.
+
+The walkthrough must include:
+1. **What changed** — list of all new files and their purpose.
+2. **How to run it** — exact terminal commands to start all services.
+3. **User flows** — step-by-step instructions for every feature (curl commands for backend, UI steps for frontend).
+4. **Known limitations** — any bugs, TODOs, or deferred items.
+5. **Embed screenshots/recordings** if any UI changes were made.
+
+**Walkthrough naming:**
+```
+AGENTS/walkthroughs/YYYYMMDD_WALK_<scope>_01.md
+```
+
+**Example scopes:** `phase1_setup`, `phase2_entities`, `phase3_backend_api`, `phase4_frontend`, `auth_module`
+
+After creating the walkthrough, tell the user:
+> "The walkthrough for Phase X is saved at `AGENTS/walkthroughs/YYYYMMDD_WALK_<scope>_01.md`."
 
 ---
 
@@ -221,3 +241,4 @@ Store secrets in `.env.local` (never committed). A `.env.example` must be mainta
 |------|--------|
 | 2026-06-15 | Initial version. |
 | 2026-06-15 (rev 2) | State management updated from React Context+useReducer to **Zustand + Zod**. Local dev DB confirmed as **Docker container**. `ddl-auto=update` confirmed for MVP with TODO for production. Phase 6 (Pilot) deferred. |
+| 2026-06-16 (rev 3) | **Walkthrough (`WALK`) files are now mandatory** after every phase completion. Updated §2.2 (category codes) and §3.4 (after-work rules) to enforce this. Added `AGENTS/walkthroughs/` as a governed directory. |
