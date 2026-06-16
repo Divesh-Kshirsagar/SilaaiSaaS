@@ -18,46 +18,41 @@ Address all items in `AGENTS/TODO.md`. Phase 5 is split into three parallel trac
 
 ### Track 1 — UI/UX Redesign (`apps/app/`)
 
-#### [MODIFY] `theme/variables.css`
-- Add full `@media (prefers-color-scheme: light)` and `.light` class overrides
-- Add CSS custom properties for surface, card, and sidebar widths
-- Keep the existing dark-mode palette as-is
+> **Styling rule:** All UI must rely **exclusively on native Ionic component props and Ionic CSS Variables** defined in `theme/variables.css`. No custom CSS classes, no `global.css` overrides, no inline `style={{}}` props. If a visual need cannot be met by an Ionic prop (`color`, `fill`, `shape`, `lines`, `size`, `expand`, `slot`) or an Ionic CSS Variable, it is deferred.
 
-#### [MODIFY] `theme/global.css`
-- Fix all floating/inline labels → stack labels above inputs using `IonLabel` + `stacked` position
-- Add `.ion-link` utility class (underline, primary color, no background) to clearly distinguish links from buttons
-- Add `.btn-primary`, `.btn-outline`, `.btn-ghost` clearly-named button variants
-- Add sidebar collapse transition CSS (`--sidebar-width`, `--sidebar-collapsed-width`)
-- Add light-mode card, toolbar, and background overrides
+#### [MODIFY] `theme/variables.css`
+- Add Ionic's built-in light palette variables under `@media (prefers-color-scheme: light)` and `.light` class
+- Tune `--ion-color-primary`, `--ion-background-color`, `--ion-item-background`, `--ion-card-background` etc. — Ionic CSS Variables only
+- **Delete all custom non-Ionic CSS** (`.silaai-card`, `.btn-gradient`, `.fade-in-up`, `wizard-steps`, etc.)
+
+#### [DELETE] `theme/global.css` _(all custom overrides removed — replaced by native Ionic)_
 
 #### [NEW] `components/ThemeToggle.tsx`
-- Toggle button (sun/moon icon) stored in a new `uiStore` (Zustand) persisted to localStorage
-- Adds/removes `.light` class on `document.body`
+- `IonButton fill="clear"` with `IonIcon` (sunnyOutline / moonOutline) — no custom styling
+- Reads/writes `uiStore.theme`; applies Ionic's `dark` palette class to `document.documentElement`
 
 #### [MODIFY] `components/AppMenu.tsx`
-- Add **collapse/close button** (chevron icon) at the top of the sidebar
-- On mobile: tapping X closes the menu (`menuController.close()`)
-- On desktop: toggles a "collapsed" state (icon-only mode, 64px wide)
-- Add `ThemeToggle` in the footer area next to Logout
+- Add close button using `IonMenuToggle` wrapping an `IonButton fill="clear"` — native Ionic close behavior, no CSS needed
+- Add `ThemeToggle` in the `IonFooter` area
 
 #### [MODIFY] All pages with forms (`LoginPage`, `CustomersPage`, `NewOrderPage`)
-- Replace all `IonLabel position="floating"` → `IonLabel position="stacked"` (label sits above input)
-- Wrap inputs in `IonItem lines="none"` with custom border for cleaner look
+- Change all `IonLabel position="floating"` → `IonLabel position="stacked"` (native Ionic prop, no CSS needed)
+- Use `IonItem lines="full"` (native Ionic dividers)
 
 #### [MODIFY] `pages/DashboardPage.tsx`
-- Replace plain text quick-action links with `IonButton fill="clear"` + explicit chevron icon for visual hierarchy
+- Replace raw `<a>` / plain text links with `IonButton fill="outline"` or `IonButton fill="clear"` — native Ionic button variants
 
 #### [MODIFY] `pages/TasksPage.tsx`
-- Replace inline "Done" button with an **accordion/swipe card** per task
-  - Shows: task type dropdown (CUTTING / STITCHING / FINISHING), notes textarea, "Mark Complete" button
-  - Collapse/expand on tap
+- Use `IonAccordion` / `IonAccordionGroup` (native Ionic component) per task — expand to show status select + save
+- `IonSelect` for task assignment, `IonButton color="success"` for Mark Complete — native Ionic only
 
 #### [MODIFY] `pages/CustomersPage.tsx`, `OrderListPage.tsx`
-- Add `IonSearchbar` + `IonSelect` filter chips (by status, date range, etc.)
-- Filtering is client-side (React state, no extra API calls needed)
+- Use `IonSearchbar` (native Ionic) for text search
+- Use `IonSelect` with `IonSelectOption` (native Ionic) for status filter chips
+- Filtering is client-side (React state)
 
 #### [NEW] `stores/uiStore.ts`
-- Persisted Zustand store for: `theme: 'dark' | 'light'`, `sidebarCollapsed: boolean`
+- Persisted Zustand store for: `theme: 'dark' | 'light'`
 
 ---
 

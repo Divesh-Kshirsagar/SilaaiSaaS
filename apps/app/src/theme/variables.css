@@ -1,4 +1,10 @@
-/** Silaai SaaS — Premium Dark Theme */
+/**
+ * Silaai SaaS — Ionic CSS Variables only.
+ * No custom classes. Only Ionic palette and semantic variables are defined here.
+ * Light/dark switching is handled by toggling @ionic/react's built-in dark palette import in App.tsx.
+ */
+
+/* ─── Dark palette (default) ─────────────────────────────────────────── */
 :root {
   --ion-color-primary: #7C5FFF;
   --ion-color-primary-rgb: 124, 95, 255;
@@ -38,23 +44,47 @@
 
   --ion-color-medium: #92949C;
   --ion-color-light: #F4F5F8;
+}
 
-  /* App-wide dark background */
-  --ion-background-color: #0F0F1A;
-  --ion-background-color-rgb: 15, 15, 26;
+/* ─── Light palette (applied when .ion-palette-light is on <html>) ────── */
+.ion-palette-light {
+  --ion-color-primary: #6B4FFF;
+  --ion-color-primary-rgb: 107, 79, 255;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-shade: #5e46e0;
+  --ion-color-primary-tint: #7a61ff;
 
-  --ion-text-color: #E8E8F0;
-  --ion-text-color-rgb: 232, 232, 240;
+  --ion-background-color: #f5f5f5;
+  --ion-background-color-rgb: 245, 245, 245;
 
-  --ion-card-background: #1A1A2E;
-  --ion-item-background: #1A1A2E;
-  --ion-toolbar-background: #0F0F1A;
-  --ion-tab-bar-background: #0F0F1A;
-  --ion-tab-bar-border-color: #2A2A3E;
+  --ion-text-color: #1a1a2e;
+  --ion-text-color-rgb: 26, 26, 46;
 
-  /* Accent glow */
-  --silaai-glow: 0 0 20px rgba(124, 95, 255, 0.3);
-  --silaai-card-border: 1px solid rgba(124, 95, 255, 0.15);
-  --silaai-surface: #1A1A2E;
-  --silaai-surface-2: #252540;
+  --ion-item-background: #ffffff;
+  --ion-card-background: #ffffff;
+
+  --ion-toolbar-background: #ffffff;
+  --ion-toolbar-color: #1a1a2e;
+
+  --ion-tab-bar-background: #ffffff;
+
+  --ion-color-step-50: #f0f0f0;
+  --ion-color-step-100: #e8e8e8;
+  --ion-color-step-150: #e0e0e0;
+  --ion-color-step-200: #d8d8d8;
+  --ion-color-step-250: #d0d0d0;
+  --ion-color-step-300: #c8c8c8;
+  --ion-color-step-350: #c0c0c0;
+  --ion-color-step-400: #b8b8b8;
+  --ion-color-step-450: #b0b0b0;
+  --ion-color-step-500: #a8a8a8;
+  --ion-color-step-550: #a0a0a0;
+  --ion-color-step-600: #989898;
+  --ion-color-step-650: #909090;
+  --ion-color-step-700: #888888;
+  --ion-color-step-750: #808080;
+  --ion-color-step-800: #787878;
+  --ion-color-step-850: #707070;
+  --ion-color-step-900: #686868;
+  --ion-color-step-950: #606060;
 }

@@ -23,6 +23,13 @@ public class FabricController {
         return ResponseEntity.status(201).body(fabricService.create(req));
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<FabricService.FabricResponse> update(
+            @PathVariable Long id,
+            @RequestBody FabricService.FabricRequest req) {
+        return ResponseEntity.ok(fabricService.update(id, req));
+    }
+
     @PutMapping("/{id}/stock")
     public ResponseEntity<FabricService.FabricResponse> adjustStock(
             @PathVariable Long id,

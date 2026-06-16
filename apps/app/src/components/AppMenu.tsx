@@ -1,64 +1,81 @@
 import React from 'react';
-import { IonMenu, IonHeader, IonToolbar, IonContent, IonList, IonItem, IonIcon, IonLabel, IonMenuToggle, IonAvatar } from '@ionic/react';
-import { useHistory } from 'react-router-dom';
-import { gridOutline, peopleOutline, cartOutline, cubeOutline, checkboxOutline, logOutOutline } from 'ionicons/icons';
+import {
+  IonMenu, IonHeader, IonToolbar, IonTitle, IonContent, IonList,
+  IonItem, IonIcon, IonLabel, IonFooter, IonMenuToggle, IonButton,
+} from '@ionic/react';
+import { useLocation } from 'react-router-dom';
+import {
+  speedometerOutline, peopleOutline, listOutline,
+  cubeOutline, checkboxOutline, logOutOutline, closeOutline,
+} from 'ionicons/icons';
 import { useAuthStore } from '../stores/authStore';
+import ThemeToggle from './ThemeToggle';
 
 const menuItems = [
-  { title: 'Dashboard', path: '/dashboard', icon: gridOutline },
-  { title: 'Customers',  path: '/customers',  icon: peopleOutline },
-  { title: 'Orders',     path: '/orders',     icon: cartOutline },
-  { title: 'Inventory',  path: '/inventory',  icon: cubeOutline },
-  { title: 'Tasks',      path: '/tasks',      icon: checkboxOutline },
+  { label: 'Dashboard', href: '/dashboard', icon: speedometerOutline },
+  { label: 'Customers',  href: '/customers',  icon: peopleOutline },
+  { label: 'Orders',     href: '/orders',     icon: listOutline },
+  { label: 'Inventory',  href: '/inventory',  icon: cubeOutline },
+  { label: 'Tasks',      href: '/tasks',      icon: checkboxOutline },
 ];
 
 const AppMenu: React.FC = () => {
+  const location = useLocation();
   const { user, logout } = useAuthStore();
-  const history = useHistory();
-
-  const handleLogout = () => {
-    logout();
-    history.push('/login');
-  };
 
   return (
-    <IonMenu contentId="main-content" side="start">
+    <IonMenu contentId="main-content" menuId="app-menu">
       <IonHeader>
-        <IonToolbar style={{ '--background': 'var(--ion-background-color)' }}>
-          <div style={{ padding: '20px 16px 12px', display: 'flex', alignItems: 'center', gap: 12 }}>
-            <IonAvatar style={{ width: 40, height: 40, background: 'var(--ion-color-primary)', display:'flex', alignItems:'center', justifyContent:'center', borderRadius:'50%' }}>
-              <span style={{ color: '#fff', fontWeight: 700, fontSize: 16 }}>{user?.name?.[0] ?? 'S'}</span>
-            </IonAvatar>
-            <div>
-              <div style={{ fontWeight: 600, color: 'var(--ion-text-color)', fontSize: 14 }}>{user?.name ?? 'SilaaiSaaS'}</div>
-              <div style={{ fontSize: 11, color: 'var(--ion-color-medium)', textTransform: 'capitalize' }}>{user?.role?.toLowerCase()}</div>
-            </div>
-          </div>
+        <IonToolbar color="primary">
+          <IonTitle>SilaaiSaaS</IonTitle>
+          {/* Native Ionic close button — works on both mobile and desktop */}
+          <IonMenuToggle slot="end">
+            <IonButton fill="clear" color="light" id="menu-close-btn">
+              <IonIcon slot="icon-only" icon={closeOutline} />
+            </IonButton>
+          </IonMenuToggle>
         </IonToolbar>
       </IonHeader>
-      <IonContent style={{ '--background': 'var(--ion-background-color)' }}>
-        <IonList lines="none" style={{ paddingTop: 8 }}>
+
+      <IonContent>
+        {user && (
+          <IonItem lines="full" color="light">
+            <IonLabel>
+              <h3>{user.name}</h3>
+              <p>{user.role}</p>
+            </IonLabel>
+          </IonItem>
+        )}
+
+        <IonList>
           {menuItems.map((item) => (
-            <IonMenuToggle key={item.path} autoHide={false}>
-              <IonItem button routerLink={item.path} routerDirection="root" detail={false}
-                style={{ '--border-radius': '10px', margin: '2px 8px', '--padding-start': '12px' }}>
-                <IonIcon slot="start" icon={item.icon} color="primary" />
-                <IonLabel>{item.title}</IonLabel>
+            <IonMenuToggle key={item.href} autoHide={false}>
+              <IonItem
+                routerLink={item.href}
+                routerDirection="root"
+                lines="none"
+                color={location.pathname.startsWith(item.href) ? 'primary' : undefined}
+                id={`menu-item-${item.label.toLowerCase()}`}
+              >
+                <IonIcon slot="start" icon={item.icon} />
+                <IonLabel>{item.label}</IonLabel>
               </IonItem>
             </IonMenuToggle>
           ))}
         </IonList>
-
-        <IonList lines="none" style={{ position: 'absolute', bottom: 32, width: '100%' }}>
-          <IonMenuToggle autoHide={false}>
-            <IonItem button onClick={handleLogout} detail={false}
-              style={{ '--border-radius': '10px', margin: '2px 8px', '--padding-start': '12px' }}>
-              <IonIcon slot="start" icon={logOutOutline} color="danger" />
-              <IonLabel color="danger">Logout</IonLabel>
-            </IonItem>
-          </IonMenuToggle>
-        </IonList>
       </IonContent>
+
+      <IonFooter>
+        <IonToolbar>
+          <ThemeToggle />
+          <IonMenuToggle slot="end" autoHide={false}>
+            <IonButton fill="clear" color="danger" id="logout-btn" onClick={logout}>
+              <IonIcon slot="start" icon={logOutOutline} />
+              Logout
+            </IonButton>
+          </IonMenuToggle>
+        </IonToolbar>
+      </IonFooter>
     </IonMenu>
   );
 };

@@ -40,3 +40,6 @@ logging:
   level:
     com.silaaisaas: DEBUG
     org.springframework.security: INFO
+    org.hibernate.SQL: WARN
+  pattern:
+    console: "%d{HH:mm:ss} %-5level [%thread] %logger{36} - %msg%n"

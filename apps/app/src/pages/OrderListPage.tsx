@@ -1,27 +1,25 @@
 import React, { useState } from 'react';
 import {
   IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonMenuButton,
-  IonButtons, IonSegment, IonSegmentButton, IonLabel, IonList, IonItem,
-  IonSkeletonText, IonFab, IonFabButton, IonIcon,
+  IonButtons, IonList, IonItem, IonLabel, IonFab, IonFabButton, IonIcon,
+  IonSpinner, IonSearchbar, IonSelect, IonSelectOption
 } from '@ionic/react';
 import { addOutline } from 'ionicons/icons';
-import { useHistory } from 'react-router-dom';
 import { useOrders } from '../hooks/useOrders';
+import { ORDER_STATUS } from '../constants/enums';
 import OrderStatusBadge from '../components/OrderStatusBadge';
-import type { OrderStatus } from '../constants/enums';
-
-const segments: { value: OrderStatus | 'ALL'; label: string }[] = [
-  { value: 'ALL', label: 'All' },
-  { value: 'DRAFT', label: 'Draft' },
-  { value: 'CONFIRMED', label: 'Active' },
-  { value: 'READY', label: 'Ready' },
-  { value: 'DELIVERED', label: 'Done' },
-];
 
 const OrderListPage: React.FC = () => {
-  const history = useHistory();
-  const [filter, setFilter] = useState<OrderStatus | 'ALL'>('ALL');
-  const { data: orders, isLoading } = useOrders(filter === 'ALL' ? undefined : filter);
+  const { data: orders, isLoading } = useOrders();
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('ALL');
+
+  const filteredOrders = orders?.filter(o => {
+    const matchesSearch = o.orderNumber.toLowerCase().includes(search.toLowerCase()) ||
+                          o.customer.name.toLowerCase().includes(search.toLowerCase());
+    const matchesStatus = statusFilter === 'ALL' || o.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  }) ?? [];
 
   return (
     <IonPage id="order-list-page">
@@ -31,37 +29,44 @@ const OrderListPage: React.FC = () => {
           <IonTitle>Orders</IonTitle>
         </IonToolbar>
         <IonToolbar>
-          <IonSegment value={filter} onIonChange={(e) => setFilter(e.detail.value as OrderStatus | 'ALL')}
-            scrollable style={{ '--background': 'transparent' }}>
-            {segments.map((s) => (
-              <IonSegmentButton key={s.value} value={s.value}>
-                <IonLabel style={{ fontSize: '0.8rem' }}>{s.label}</IonLabel>
-              </IonSegmentButton>
-            ))}
-          </IonSegment>
+          <IonSearchbar
+            value={search}
+            onIonInput={e => setSearch(e.detail.value!)}
+            placeholder="Search ORD- or customer..."
+          />
+        </IonToolbar>
+        <IonToolbar>
+          <IonItem lines="none">
+            <IonLabel>Filter Status:</IonLabel>
+            <IonSelect value={statusFilter} onIonChange={e => setStatusFilter(e.detail.value)}>
+              <IonSelectOption value="ALL">All Statuses</IonSelectOption>
+              {Object.values(ORDER_STATUS).map(st => (
+                <IonSelectOption key={st} value={st}>{st}</IonSelectOption>
+              ))}
+            </IonSelect>
+          </IonItem>
         </IonToolbar>
       </IonHeader>
 
       <IonContent>
         <IonList>
-          {isLoading ? Array.from({ length: 5 }).map((_, i) => (
-            <IonItem key={i}><IonLabel><IonSkeletonText animated style={{ width: '70%' }} /><IonSkeletonText animated style={{ width: '45%' }} /></IonLabel></IonItem>
-          )) : orders?.map((o) => (
-            <IonItem key={o.id} button onClick={() => history.push(`/orders/${o.id}`)} detail>
+          {isLoading && <IonItem><IonSpinner name="dots" /></IonItem>}
+          {filteredOrders.map(o => (
+            <IonItem key={o.id} routerLink={`/orders/${o.id}`} detail>
               <IonLabel>
-                <h3 style={{ fontWeight: 600 }}>{o.orderNumber} — {o.customer.name}</h3>
-                <p>Delivery: {new Date(o.deliveryDate).toLocaleDateString('en-IN')} &nbsp;|&nbsp; ₹{o.totalAmount.toLocaleString()}</p>
+                <h2><b>{o.orderNumber}</b> — {o.customer.name}</h2>
+                <p>Delivery: {o.deliveryDate}</p>
               </IonLabel>
               <OrderStatusBadge status={o.status} />
             </IonItem>
           ))}
-          {!isLoading && !orders?.length && (
-            <IonItem><IonLabel style={{ color: 'var(--ion-color-medium)', textAlign: 'center' }}>No orders found</IonLabel></IonItem>
+          {!isLoading && filteredOrders.length === 0 && (
+            <IonItem><IonLabel className="ion-text-center" color="medium">No orders found</IonLabel></IonItem>
           )}
         </IonList>
 
         <IonFab vertical="bottom" horizontal="end" slot="fixed">
-          <IonFabButton id="new-order-btn" onClick={() => history.push('/orders/new')}>
+          <IonFabButton id="new-order-fab" routerLink="/orders/new">
             <IonIcon icon={addOutline} />
           </IonFabButton>
         </IonFab>

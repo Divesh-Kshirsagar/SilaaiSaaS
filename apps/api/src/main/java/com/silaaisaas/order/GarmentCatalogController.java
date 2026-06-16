@@ -22,4 +22,11 @@ public class GarmentCatalogController {
     public ResponseEntity<GarmentCatalog> create(@RequestBody GarmentCatalogService.GarmentRequest req) {
         return ResponseEntity.status(201).body(garmentCatalogService.create(req));
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<GarmentCatalog> update(
+            @PathVariable Long id,
+            @RequestBody GarmentCatalogService.GarmentRequest req) {
+        return ResponseEntity.ok(garmentCatalogService.update(id, req));
+    }
 }

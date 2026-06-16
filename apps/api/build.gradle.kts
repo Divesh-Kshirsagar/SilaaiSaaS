@@ -53,3 +53,8 @@ dependencies {
 tasks.withType<Test> {
 	useJUnitPlatform()
 }
+
+springBoot {
+	mainClass = "com.silaaisaas.api.ApiApplication"
+}
+

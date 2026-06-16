@@ -22,4 +22,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     @Query("SELECT COUNT(o) FROM Order o WHERE o.shop.id = :shopId AND o.status NOT IN ('DELIVERED', 'DRAFT')")
     long countActiveByShopId(@Param("shopId") Long shopId);
+
+    java.util.Optional<Order> findByOrderNumber(String orderNumber);
 }

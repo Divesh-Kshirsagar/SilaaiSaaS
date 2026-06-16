@@ -50,6 +50,17 @@ public class FabricService {
     }
 
     @Transactional
+    public FabricResponse update(Long id, FabricRequest req) {
+        Fabric fabric = getById(id);
+        fabric.setName(req.name());
+        if (req.reorderLevel() != null) fabric.setReorderLevel(req.reorderLevel());
+        fabricRepository.save(fabric);
+        return new FabricResponse(fabric.getId(), fabric.getName(),
+                fabric.getQuantityAvailable(), fabric.getReorderLevel(),
+                fabric.getQuantityAvailable() <= fabric.getReorderLevel());
+    }
+
+    @Transactional
     public FabricResponse adjustStock(Long id, StockAdjustRequest req) {
         Fabric fabric = getById(id);
         fabric.setQuantityAvailable(fabric.getQuantityAvailable() + req.quantityChange());

@@ -32,4 +32,15 @@ public class GarmentCatalogService {
                 .defaultFabricConsumptionMeters(req.defaultFabricConsumptionMeters())
                 .build());
     }
+
+    @Transactional
+    public GarmentCatalog update(Long id, GarmentRequest req) {
+        GarmentCatalog g = garmentCatalogRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Garment not found: " + id));
+        g.setName(req.name());
+        if (req.basePrice() != null) g.setBasePrice(req.basePrice());
+        if (req.defaultFabricConsumptionMeters() != null)
+            g.setDefaultFabricConsumptionMeters(req.defaultFabricConsumptionMeters());
+        return garmentCatalogRepository.save(g);
+    }
 }
