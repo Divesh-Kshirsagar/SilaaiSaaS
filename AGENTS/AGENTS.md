@@ -12,7 +12,8 @@ SilaaiSaaS/
 │   ├── AGENTS.md            ← This governance file (the source of truth)
 │   ├── plans/               ← Implementation plans (one file per feature/milestone)
 │   ├── tasks/               ← Task tracking files (one file per sprint/phase)
-│   └── walkthroughs/        ← Post-completion summaries with screenshots/notes
+│   ├── walkthroughs/        ← Post-completion summaries with screenshots/notes
+│   └── TODO.md              ← Master list of UI refinements, missing features, tech debt
 ├── apps/
 │   ├── api/                 ← Spring Boot 3 backend (Java 21 + Lombok)
 │   └── app/                 ← Ionic React frontend (TypeScript + Capacitor)
@@ -105,6 +106,9 @@ The walkthrough must include:
 3. **User flows** — step-by-step instructions for every feature (curl commands for backend, UI steps for frontend).
 4. **Known limitations** — any bugs, TODOs, or deferred items.
 5. **Embed screenshots/recordings** if any UI changes were made.
+
+> [!IMPORTANT]
+> **If your work resolves any item listed in `AGENTS/TODO.md`, you MUST check off `[x]` that item in `TODO.md` as part of your completion process.**
 
 **Walkthrough naming:**
 ```
@@ -242,3 +246,4 @@ Store secrets in `.env.local` (never committed). A `.env.example` must be mainta
 | 2026-06-15 | Initial version. |
 | 2026-06-15 (rev 2) | State management updated from React Context+useReducer to **Zustand + Zod**. Local dev DB confirmed as **Docker container**. `ddl-auto=update` confirmed for MVP with TODO for production. Phase 6 (Pilot) deferred. |
 | 2026-06-16 (rev 3) | **Walkthrough (`WALK`) files are now mandatory** after every phase completion. Updated §2.2 (category codes) and §3.4 (after-work rules) to enforce this. Added `AGENTS/walkthroughs/` as a governed directory. |
+| 2026-06-16 (rev 4) | Created `AGENTS/TODO.md` to track UI refinements and missing features. Updated §1 and §3.4 to mandate updating `TODO.md` when tasks are completed. |
