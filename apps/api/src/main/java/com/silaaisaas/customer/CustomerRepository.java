@@ -13,4 +13,6 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
     Page<Customer> searchByShop(@Param("shopId") Long shopId,
                                  @Param("search") String search,
                                  Pageable pageable);
+
+    long countByShopId(Long shopId);
 }

@@ -38,11 +38,11 @@ export default function ReportsPage() {
   if (isLoading) return <div className="p-6"><Skeleton className="h-8 w-48 mb-6" /><div className="grid grid-cols-3 gap-6"><Skeleton className="h-32" /><Skeleton className="h-32" /><Skeleton className="h-32" /></div><Skeleton className="h-96 mt-6" /></div>
 
   const revenueData = {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
     datasets: [
       {
         label: 'Revenue (₹)',
-        data: [12000, 19000, 15000, 22000, 18000, report?.totalRevenue || 25000],
+        data: report?.revenueTrend || [0,0,0,0,0,0,0,0,0,0,0,0],
         backgroundColor: 'rgba(59, 130, 246, 0.5)',
         borderColor: 'rgb(59, 130, 246)',
         borderWidth: 1,
@@ -54,7 +54,13 @@ export default function ReportsPage() {
     labels: ['Draft', 'Confirmed', 'In Progress', 'Ready', 'Delivered'],
     datasets: [
       {
-        data: [5, 12, 18, 8, 42],
+        data: [
+          report?.orderStatusBreakdown?.DRAFT || 0,
+          report?.orderStatusBreakdown?.CONFIRMED || 0,
+          report?.orderStatusBreakdown?.IN_PROGRESS || 0,
+          report?.orderStatusBreakdown?.READY || 0,
+          report?.orderStatusBreakdown?.DELIVERED || 0
+        ],
         backgroundColor: [
           '#94a3b8',
           '#3b82f6',
@@ -81,7 +87,6 @@ export default function ReportsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">₹{report?.totalRevenue?.toLocaleString() || '0'}</div>
-            <p className="text-xs text-green-600 mt-1">+12% from last month</p>
           </CardContent>
         </Card>
         
@@ -92,7 +97,6 @@ export default function ReportsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{report?.totalOrders || '0'}</div>
-            <p className="text-xs text-green-600 mt-1">+5% from last month</p>
           </CardContent>
         </Card>
 
@@ -102,8 +106,7 @@ export default function ReportsPage() {
             <Users size={18} className="text-orange-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">84</div>
-            <p className="text-xs text-muted-foreground mt-1">12 new this month</p>
+            <div className="text-3xl font-bold">{report?.activeCustomers || '0'}</div>
           </CardContent>
         </Card>
       </div>

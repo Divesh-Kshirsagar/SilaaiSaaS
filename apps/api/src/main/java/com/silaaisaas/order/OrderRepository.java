@@ -24,4 +24,9 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     long countActiveByShopId(@Param("shopId") Long shopId);
 
     java.util.Optional<Order> findByOrderNumber(String orderNumber);
+
+    long countByShopId(Long shopId);
+
+    @Query("SELECT o.status, COUNT(o) FROM Order o WHERE o.shop.id = :shopId GROUP BY o.status")
+    List<Object[]> countOrdersByShopIdGroupByStatus(@Param("shopId") Long shopId);
 }
