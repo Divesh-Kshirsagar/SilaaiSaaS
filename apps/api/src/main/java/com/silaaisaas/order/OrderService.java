@@ -2,6 +2,7 @@ package com.silaaisaas.order;
 
 import com.silaaisaas.auth.User;
 import com.silaaisaas.auth.UserRepository;
+import com.silaaisaas.billing.BillingService;
 import com.silaaisaas.common.enums.OrderStatus;
 import com.silaaisaas.common.enums.TaskStatus;
 import com.silaaisaas.common.enums.TaskType;
@@ -19,6 +20,7 @@ import com.silaaisaas.shop.ShopService;
 import com.silaaisaas.task.Task;
 import com.silaaisaas.task.TaskRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,6 +42,8 @@ public class OrderService {
     private final UserRepository userRepository;
     private final GarmentCatalogRepository garmentCatalogRepository;
     private final BillOfMaterialRepository bomRepository;
+    @Lazy
+    private final BillingService billingService;
 
     // ---- DTOs ----
 
@@ -185,6 +189,9 @@ public class OrderService {
         // Step 3: Confirm order
         order.setStatus(OrderStatus.CONFIRMED);
         orderRepository.save(order);
+
+        // Step 3b: Auto-create invoice
+        billingService.createInvoice(order.getId());
 
         // Step 4: Create CUTTING task — assign to first available tailor in shop
         User tailor = userRepository.findAll().stream()
