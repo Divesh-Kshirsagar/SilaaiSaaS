@@ -63,7 +63,7 @@ export default function OrderListPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 md:p-6 space-y-4 md:space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Orders</h1>
         <Button onClick={() => navigate('/orders/new')}>
@@ -101,8 +101,8 @@ export default function OrderListPage() {
         </div>
       </div>
 
-      <div className="rounded-md border bg-card">
-        <Table>
+      <div className="rounded-md border bg-card overflow-x-auto">
+        <Table className="min-w-[600px]">
           <TableHeader>
             <TableRow>
               <TableHead>Order Number</TableHead>

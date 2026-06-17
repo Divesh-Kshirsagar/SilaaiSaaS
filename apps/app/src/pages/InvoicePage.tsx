@@ -44,7 +44,7 @@ export default function InvoicePage() {
   if (!invoice) return <div className="p-6 text-muted-foreground">Invoice not generated yet.</div>
 
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-6">
+    <div className="p-4 md:p-6 max-w-4xl mx-auto space-y-4 md:space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => navigate(`/orders/${orderId}`)}>

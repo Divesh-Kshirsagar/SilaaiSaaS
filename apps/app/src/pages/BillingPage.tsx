@@ -29,8 +29,8 @@ export default function BillingPage() {
   const invoices: Invoice[] = res?.content || []
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="p-4 md:p-6 max-w-6xl mx-auto space-y-4 md:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">Billing & Invoices</h1>
           <p className="text-muted-foreground">Manage all customer invoices and payments.</p>
@@ -44,8 +44,8 @@ export default function BillingPage() {
         </div>
       </div>
 
-      <div className="border rounded-lg bg-white">
-        <Table>
+      <div className="border rounded-lg bg-card overflow-x-auto">
+        <Table className="min-w-[700px]">
           <TableHeader>
             <TableRow>
               <TableHead>Invoice #</TableHead>

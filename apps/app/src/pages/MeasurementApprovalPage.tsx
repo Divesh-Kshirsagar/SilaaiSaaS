@@ -34,8 +34,8 @@ export default function MeasurementApprovalPage() {
   })
 
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-6">
-      <div>
+    <div className="p-4 md:p-6 max-w-5xl mx-auto space-y-4 md:space-y-6">
+      <div className="flex items-center gap-3">
         <h1 className="text-2xl font-bold">Measurement Approvals</h1>
         <p className="text-muted-foreground">Review and approve measurement updates from staff.</p>
       </div>
