@@ -96,3 +96,191 @@ If you’re looking to scale your tailoring operations in 2025 and beyond, inves
 2. https://orderry.com/tailor-shop-software/
 3. https://www.atelierware.com/
 4. https://gigante.co.in/tailor-shop-management-system/
+
+## Developer Setup
+
+This project contains a Spring Boot API, PostgreSQL database, and Ionic/React frontend.
+
+### Tech Stack
+
+- Backend: Java 21, Spring Boot, Spring Security, Spring Data JPA, Gradle
+- Frontend: React 19, Ionic, Vite, TypeScript
+- Database: PostgreSQL 16
+- Docker: Docker Compose for API, frontend, and database
+
+### Project Structure
+
+```text
+.
+├── apps
+│   ├── api      # Spring Boot API
+│   └── app      # Ionic/React frontend
+├── docker-compose.yml
+└── README.md
+```
+
+## Run With Docker
+
+Docker is the quickest way to run the full project.
+
+### Prerequisites
+
+- Docker
+- Docker Compose
+
+### Start the App
+
+```bash
+docker compose up --build
+```
+
+Then open:
+
+- Frontend: http://localhost:3000
+- API: http://localhost:8080
+- PostgreSQL: localhost:5432
+
+The database is seeded automatically on first startup.
+
+Demo login:
+
+```text
+Phone: 9999999999
+Password: password
+```
+
+### Stop the App
+
+```bash
+docker compose down
+```
+
+To also remove the database volume and start fresh:
+
+```bash
+docker compose down -v
+```
+
+## Run Locally Without Docker
+
+Use this path if you want to develop the API and frontend directly on your machine.
+
+### Prerequisites
+
+- Java 21
+- Node.js 22 or newer
+- npm
+- PostgreSQL 16
+
+### 1. Start PostgreSQL
+
+Create a local database and user matching the default development settings:
+
+```sql
+CREATE USER silaai WITH PASSWORD 'silaai_dev';
+CREATE DATABASE silaaisaas OWNER silaai;
+```
+
+### 2. Configure the API
+
+```bash
+cd apps/api
+cp .env.example .env.local
+```
+
+Default API values:
+
+```text
+DB_URL=jdbc:postgresql://localhost:5432/silaaisaas
+DB_USERNAME=silaai
+DB_PASSWORD=silaai_dev
+JWT_SECRET=replace-with-32-char-minimum-secret-key
+JWT_EXPIRY_MS=86400000
+CORS_ORIGINS=http://localhost:5173,http://localhost:8100
+```
+
+If your shell does not automatically load `.env.local`, export those values before running the API.
+
+### 3. Run the API
+
+```bash
+cd apps/api
+./gradlew bootRun
+```
+
+The API runs at http://localhost:8080.
+
+### 4. Configure the Frontend
+
+In a new terminal:
+
+```bash
+cd apps/app
+cp .env.example .env.local
+npm install
+```
+
+Default frontend value:
+
+```text
+VITE_API_BASE_URL=http://localhost:8080/api/v1
+```
+
+### 5. Run the Frontend
+
+```bash
+cd apps/app
+npm run dev
+```
+
+The Vite dev server runs at http://localhost:5173.
+
+## Useful Commands
+
+Run backend tests:
+
+```bash
+cd apps/api
+./gradlew test
+```
+
+Build backend:
+
+```bash
+cd apps/api
+./gradlew bootJar
+```
+
+Run frontend checks:
+
+```bash
+cd apps/app
+npm run lint
+npm run test.unit
+npm run build
+```
+
+## Environment Variables
+
+### API
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `DB_URL` | `jdbc:postgresql://localhost:5432/silaaisaas` | PostgreSQL JDBC URL |
+| `DB_USERNAME` | `silaai` | Database username |
+| `DB_PASSWORD` | `silaai_dev` | Database password |
+| `JWT_SECRET` | development fallback | JWT signing secret; use at least 32 characters |
+| `JWT_EXPIRY_MS` | `86400000` | JWT expiry in milliseconds |
+| `CORS_ORIGINS` | `http://localhost:5173,http://localhost:8100` | Allowed browser origins |
+
+### Frontend
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `VITE_API_BASE_URL` | `http://localhost:8080/api/v1` | API base URL used by the browser |
+
+## Notes
+
+- The API currently uses `spring.jpa.hibernate.ddl-auto=update`, so Hibernate creates and updates tables automatically during development.
+- `docker-compose.yml` maps the frontend to port `3000`, API to `8080`, and PostgreSQL to `5432`.
+- Seed data is inserted only when the database is empty.
